@@ -2,7 +2,8 @@
 // Today View — two-column grid shell (P05).
 // Left: fluid (1fr, min 320px). Right: 272px fixed.
 // Content components added in P06–P11.
-import { useState, useCallback } from 'react';
+// P23: sync_last_run display added (--ink4 italic, bottom of right column).
+import { useState, useCallback, useEffect } from 'react';
 import BriefPanel from '@/components/today/BriefPanel';
 import TaskList from '@/components/today/TaskList';
 import TextbookList from '@/components/today/TextbookList';
@@ -13,10 +14,35 @@ import CalendarStrip from '@/components/today/CalendarStrip';
 import ExamCountdown from '@/components/today/ExamCountdown';
 import type { PrimerData } from '@/app/api/primer/route';
 
+function useSyncLastRun(): string {
+  const [label, setLabel] = useState('');
+
+  useEffect(() => {
+    fetch('/api/health')
+      .then((r) => r.json())
+      .then((json) => {
+        const raw: string = json?.data?.sync_last_run ?? '';
+        if (!raw || raw === 'never') {
+          setLabel('never synced');
+          return;
+        }
+        const diff = Date.now() - new Date(raw).getTime();
+        const mins = Math.floor(diff / 60000);
+        if (mins < 1) setLabel('synced just now');
+        else if (mins < 60) setLabel(`synced ${mins}m ago`);
+        else setLabel(`synced ${Math.floor(mins / 60)}h ago`);
+      })
+      .catch(() => { /* silent — sync status is non-critical */ });
+  }, []);
+
+  return label;
+}
+
 export default function TodayPage() {
   const [showPrimer, setShowPrimer] = useState(false);
   const [primerLoading, setPrimerLoading] = useState(false);
   const [primerData, setPrimerData] = useState<PrimerData | null>(null);
+  const syncLabel = useSyncLastRun();
 
   const handlePomodoroStart = useCallback(async () => {
     // Show primer immediately with loading state — non-blocking
@@ -35,8 +61,7 @@ export default function TodayPage() {
       if (json.success && json.data) {
         setPrimerData(json.data as PrimerData);
       }
-    } catch (err) {
-      console.error('[TodayPage] primer fetch failed:', err);
+    } catch {
       // Panel shows fallback text via null data
     } finally {
       setPrimerLoading(false);
@@ -71,6 +96,17 @@ export default function TodayPage() {
         )}
         <ConfusionMap />
         <ExamCountdown />
+        {syncLabel && (
+          <p style={{
+            fontSize: 12,
+            fontStyle: 'italic',
+            color: 'var(--ink4)',
+            textAlign: 'right',
+            margin: 0,
+          }}>
+            {syncLabel}
+          </p>
+        )}
       </div>
     </div>
   );
