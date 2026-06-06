@@ -2,6 +2,15 @@
 
 All notable changes to Second Brain are documented here.
 
+## [1.0.0] — 2026-06-06
+
+### P25 — Production Verification + Ship
+- Final grep audit: box-shadow=0, console.*=0, hardcoded-hex=0, pure-white=0, debugger=0
+- ADR-013: v1.0 scope close decision recorded
+- npm audit: 4 HIGH in Next.js internal postcss (deferred to v1.1 — fix requires breaking Next upgrade)
+- Phase Gate 6: ALL criteria PASS — project formally closed
+- git tag v1.0 — shipped to https://github.com/machtumens/Brainify
+
 ## [1.0.0-rc1] — 2026-06-06
 
 ### Sprint 6 — Apple Sync + Polish + Ship

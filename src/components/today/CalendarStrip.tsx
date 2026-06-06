@@ -23,7 +23,7 @@ function dotStyle(state: DotState): React.CSSProperties {
     case 'planned':
       return { background: 'var(--line2)' };
     case 'rest':
-      // outline draws outside the element — not box-shadow (which is forbidden)
+      // outline draws outside the element without adding depth effects
       return { background: 'transparent', outline: '1px solid var(--line2)' };
   }
 }

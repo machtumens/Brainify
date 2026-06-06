@@ -2,4 +2,111 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CSS custom properties added in P03 */
+/* ============================================================
+   DESIGN TOKENS — Second Brain
+   Frozen after P03. No changes without Review Gate (Law 9).
+   Source: ui-ux-principles.md §1.2, §5.1, §14
+   ============================================================ */
+
+:root {
+  /* Backgrounds — warm off-white. Never pure white (#FFF forbidden). */
+  --cream:  #FAF8F4;  /* Page background */
+  --cream2: #F3F0EA;  /* Card hover, secondary surfaces */
+  --cream3: #EAE6DD;  /* Active/pressed, primer formula bg */
+
+  /* Ink — one color, four weights. All text, all UI. */
+  --ink:    #1A1917;  /* Primary text, active elements, Pomodoro ring fill */
+  --ink2:   #4A4845;  /* Secondary text, completed-but-recent items */
+  --ink3:   #8A8784;  /* Tertiary text, subtitles, placeholders */
+  --ink4:   #B8B5B0;  /* Disabled, timestamps, section labels (10px+ only) */
+
+  /* Lines — borders and dividers only. 1px only. Never thicker. */
+  --line:   #E2DED6;  /* Card borders, row dividers */
+  --line2:  #CBC7BF;  /* Emphasized borders, hover borders, checkbox default */
+
+  /* Semantic — state-only. 5% rule: max 5 uses per screen. */
+  --red:    #C0392B;  /* Danger-zone topics, missing sources, flagged errors */
+  --amber:  #8B5E00;  /* Missed goals, watch-zone topics, behind-pace flag */
+  --green:  #2D6A4F;  /* Test sim correct answer ONLY — no other use */
+
+  /* Semantic surface tints — pill backgrounds for confusion map + goal badges */
+  --amber-pill: #F5E8D0;  /* Amber topic pills, behind-pace badge bg */
+  --red-pill:   #F5D9D7;  /* Danger-zone topic pills */
+
+  /* Timing — §5.1 Motion Rule. Animation = state change, never delight. */
+  --t-fast:     80ms ease;         /* Card hover bg, nav active state */
+  --t-task:     150ms ease;        /* Task check, capture confirm, error flag */
+  --t-expand:   200ms ease-in-out; /* Section expand/collapse */
+  --t-progress: 300ms ease;        /* Progress bar width transition */
+  --t-skeleton: 1.5s ease-in-out;  /* AI brief skeleton pulse — no spinner */
+}
+
+/* ============================================================
+   BASE RESET
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ============================================================
+   BODY DEFAULTS — §14
+   ============================================================ */
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================
+   FOCUS STATES — §11.3
+   Never: outline: none without replacement indicator.
+   ============================================================ */
+
+:focus-visible {
+  outline: 2px solid var(--ink2);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+
+/* ============================================================
+   SKELETON ANIMATION — §5.3
+   AI brief loading state. No spinner. 2-line block at correct width.
+   ============================================================ */
+
+@keyframes skeleton-sweep {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--cream2) 25%, var(--cream3) 50%, var(--cream2) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-sweep var(--t-skeleton) infinite;
+  border-radius: 4px;
+  height: 14px;
+}
+
+/* ============================================================
+   CARD SPEC — §3.3, §4.1
+   border-radius: 11px (not 8px = too sharp, not 16px = too bubbly)
+   padding: 14px 16px (generous without wasting vertical space)
+   Depth via border + background contrast ONLY. No depth effects. No exceptions.
+   ============================================================ */
+
+/* ============================================================
+   PROGRESS BAR SPEC — §4.4
+   height: 1px — deliberate precision signal, not a constraint.
+   All bars use --ink fill. No subject color-coding.
+   transition: width var(--t-progress).
+   ============================================================ */

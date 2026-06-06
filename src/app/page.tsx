@@ -1,7 +1,6 @@
+import { redirect } from 'next/navigation';
+
+// Middleware handles auth guard. If authenticated, redirect to Today view.
 export default function Home() {
-  return (
-    <main>
-      <p>Second Brain — loading</p>
-    </main>
-  );
+  redirect('/today');
 }

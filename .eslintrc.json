@@ -2,5 +2,19 @@
   "extends": ["next/core-web-vitals", "next/typescript"],
   "rules": {
     "no-console": "warn"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["src/app/api/**/*.ts", "src/lib/**/*.ts", "src/lib/**/*.js"],
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
+      "files": ["src/app/layout.tsx"],
+      "rules": {
+        "@next/next/no-page-custom-font": "off"
+      }
+    }
+  ]
 }

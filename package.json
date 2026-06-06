@@ -9,7 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.49.0",
+    "@tabler/icons-react": "^3.44.0",
+    "groq-sdk": "^1.2.1",
     "next": "14.2.35",
+    "openai": "^6.42.0",
     "react": "^18",
     "react-dom": "^18"
   },
@@ -24,6 +30,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.35",
     "postcss": "^8",
+    "supabase": "^2.24.0",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }
