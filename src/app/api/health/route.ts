@@ -55,7 +55,7 @@ async function checkRetroLastRun(): Promise<string | null> {
   try {
     const { createServiceClient } = await import('@/lib/supabase');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = createServiceClient() as any;
+    const db = createServiceClient();
     const { data } = await db
       .from('retrospectives')
       .select('created_at')
@@ -73,7 +73,7 @@ async function checkSyncLastRun(): Promise<string | null> {
   try {
     const { createServiceClient } = await import('@/lib/supabase');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = createServiceClient() as any;
+    const db = createServiceClient();
     const { data } = await db
       .from('sync_log')
       .select('run_at')

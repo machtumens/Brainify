@@ -57,7 +57,7 @@ export async function GET() {
 
     const { createServiceClient } = await import('@/lib/supabase');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = createServiceClient() as any;
+    const db = createServiceClient();
 
     const { data, error } = await db
       .from('test_results')
@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
 
     const { createServiceClient } = await import('@/lib/supabase');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = createServiceClient() as any;
+    const db = createServiceClient();
 
     // Identify wrong answers (answered and incorrect)
     const wrongQuestions = questions.filter(

@@ -30,12 +30,10 @@ export default function ConfusionMap() {
     async function fetchAndCompute() {
       const db = createClient();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const dbAny = db as any;
-    const [sessionsRes, errorsRes, textbooksRes] = await Promise.all([
-        dbAny.from('sessions').select('subject').order('started_at', { ascending: false }).limit(30),
-        dbAny.from('errors').select('topic'),
-        dbAny.from('textbooks').select('subject'),
+      const [sessionsRes, errorsRes, textbooksRes] = await Promise.all([
+        db.from('sessions').select('subject').order('started_at', { ascending: false }).limit(30),
+        db.from('errors').select('topic'),
+        db.from('textbooks').select('subject'),
       ]);
 
       if (cancelled) return;

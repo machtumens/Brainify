@@ -78,15 +78,21 @@ async function fetchMaterials(topics: string[]): Promise<{
   // Server-side: use service client for full read access
   const { createServiceClient } = await import('@/lib/supabase');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = createServiceClient() as any;
+  const db = createServiceClient();
 
   const [tbRes, capRes, errRes] = await Promise.all([
     db.from('textbooks').select('subject, title, topic_map'),
-    db.from('captures').select('content, subject_tag, topic_tag').order('captured_at', { ascending: false }).limit(50),
+    db.from('captures').select('content, subject_tag, topic_tag').order('created_at', { ascending: false }).limit(50),
     db.from('errors').select('topic, subtopic').order('flagged_at', { ascending: false }).limit(100),
   ]);
 
-  const textbooks: TextbookRow[] = (tbRes.data ?? []).filter((t: TextbookRow) =>
+  // topic_map is jsonb — narrow from Json at the query boundary
+  const tbRows: TextbookRow[] = (tbRes.data ?? []).map((t) => ({
+    subject: t.subject,
+    title: t.title,
+    topic_map: t.topic_map as TextbookRow['topic_map'],
+  }));
+  const textbooks: TextbookRow[] = tbRows.filter((t: TextbookRow) =>
     topics.some((topic) =>
       t.subject?.toLowerCase() === topic.toLowerCase() ||
       Object.values(t.topic_map ?? {}).flat().some(

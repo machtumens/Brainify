@@ -37,7 +37,7 @@ export default function ExamCountdown() {
   useEffect(() => {
     async function fetchData() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const db = createClient() as any;
+      const db = createClient();
       const today = new Date();
 
       const sevenDaysAgo = new Date(today);
@@ -67,7 +67,7 @@ export default function ExamCountdown() {
 
       const examDate = addMonths(new Date(goal.started_at), goal.total_months as number);
       const days = Math.max(0, daysUntil(examDate, today));
-      const topics = countUnfinishedTopics(goal.roadmap as GoalRoadmap);
+      const topics = countUnfinishedTopics(goal.roadmap as unknown as GoalRoadmap);
       const velocity = computeVelocity(sessionsRes.data ?? []);
 
       setData({ daysRemaining: days, topicsUnfinished: topics, pagesPerDay: velocity });

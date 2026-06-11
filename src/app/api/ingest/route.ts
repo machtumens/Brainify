@@ -64,7 +64,7 @@ async function recalculateSourceQuality(
 
   // Count captures for this topic
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { count } = await (db as any)
+  const { count } = await db
     .from('captures')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
@@ -76,7 +76,7 @@ async function recalculateSourceQuality(
   // Upsert: one sources row per (user_id, topic, resource_type='capture')
   // Use the triggering capture's id as resource_id
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (db as any)
+  await db
     .from('sources')
     .upsert(
       {
@@ -102,7 +102,7 @@ async function maybeLogMistake(
 
   const db = createServiceClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (db as any).from('errors').insert({
+  await db.from('errors').insert({
     user_id: userId,
     session_id: null,
     topic: topicTag || null,
@@ -217,7 +217,7 @@ export async function POST(req: NextRequest) {
     // 3. Fetch textbook titles for auto-tag context (lightweight — titles only)
     const db = createServiceClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: textbooks } = await (db as any)
+    const { data: textbooks } = await db
       .from('textbooks')
       .select('title')
       .eq('user_id', user.id);
@@ -233,7 +233,7 @@ export async function POST(req: NextRequest) {
 
     // 5. Write to captures
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: capture, error: captureError } = await (db as any)
+    const { data: capture, error: captureError } = await db
       .from('captures')
       .insert({
         user_id: user.id,

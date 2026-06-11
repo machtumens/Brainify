@@ -186,63 +186,10 @@ export type SourceInsert = Omit<SourceRow, 'id' | 'created_at'>;
 export type RetrospectiveInsert = Omit<RetrospectiveRow, 'id' | 'created_at'>;
 
 // ----------------------------------------------------------------
-// Database type — used to type the Supabase client
+// Database type — generated from live Supabase schema.
+// Regenerate: npx supabase gen types typescript --project-id sfegtgzogkjdwwziyvot > src/types/database.gen.ts
+// Domain interfaces above remain the app-facing types; the generated
+// Database type (with Relationships) drives supabase-js generics.
 // ----------------------------------------------------------------
 
-export interface Database {
-  public: {
-    // supabase-js v2 requires Views, Functions, Enums, CompositeTypes
-    // to be present in the schema type or generic resolution falls back to never.
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: Record<string, never>;
-    CompositeTypes: Record<string, never>;
-    Tables: {
-      users: {
-        Row: UserRow;
-        Insert: UserInsert;
-        Update: Partial<UserInsert>;
-      };
-      goals: {
-        Row: GoalRow;
-        Insert: GoalInsert;
-        Update: Partial<GoalInsert>;
-      };
-      textbooks: {
-        Row: TextbookRow;
-        Insert: TextbookInsert;
-        Update: Partial<TextbookInsert>;
-      };
-      sessions: {
-        Row: SessionRow;
-        Insert: SessionInsert;
-        Update: Partial<SessionInsert>;
-      };
-      errors: {
-        Row: ErrorRow;
-        Insert: ErrorInsert;
-        Update: Partial<ErrorInsert>;
-      };
-      captures: {
-        Row: CaptureRow;
-        Insert: CaptureInsert;
-        Update: Partial<CaptureInsert>;
-      };
-      test_results: {
-        Row: TestResultRow;
-        Insert: TestResultInsert;
-        Update: Partial<TestResultInsert>;
-      };
-      sources: {
-        Row: SourceRow;
-        Insert: SourceInsert;
-        Update: Partial<SourceInsert>;
-      };
-      retrospectives: {
-        Row: RetrospectiveRow;
-        Insert: RetrospectiveInsert;
-        Update: Partial<RetrospectiveInsert>;
-      };
-    };
-  };
-}
+export type { Database, Json } from './database.gen';

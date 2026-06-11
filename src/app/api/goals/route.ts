@@ -3,7 +3,9 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { createServiceClient } from '@/lib/supabase';
 import { buildGoalUpdates } from '@/lib/goalTracker';
-import type { GoalRow, SessionRow } from '@/types/database';
+import type { GoalRow, SessionRow, Database } from '@/types/database';
+
+type GoalUpdate = Database['public']['Tables']['goals']['Update'];
 
 export async function GET() {
   try {
@@ -35,9 +37,9 @@ export async function GET() {
 
     const db = createServiceClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (db as any)
+    const { data, error } = await db
       .from('goals')
-      .select('id, title, category, status, total_months, current_month, started_at, roadmap, created_at')
+      .select('id, user_id, title, category, status, total_months, current_month, started_at, roadmap, created_at')
       .eq('user_id', user.id)
       .order('status', { ascending: true }) // active < done < locked alphabetically — adjust below
       .order('created_at', { ascending: true });
@@ -94,17 +96,18 @@ export async function POST() {
 
     // Fetch all goals
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: goalsData, error: goalsError } = await (db as any)
+    const { data: goalsData, error: goalsError } = await db
       .from('goals')
-      .select('id, title, category, status, total_months, current_month, started_at, roadmap, created_at')
+      .select('id, user_id, title, category, status, total_months, current_month, started_at, roadmap, created_at')
       .eq('user_id', user.id);
 
     if (goalsError) throw new Error(goalsError.message);
-    const goals: GoalRow[] = goalsData ?? [];
+    // jsonb roadmap comes back as generic Json — narrow at the boundary
+    const goals: GoalRow[] = (goalsData ?? []) as unknown as GoalRow[];
 
     // Fetch sessions for amber check — all time, most recent first, limited for performance
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: allMLSessions, error: mlError } = await (db as any)
+    const { data: allMLSessions, error: mlError } = await db
       .from('sessions')
       .select('subject, started_at')
       .eq('user_id', user.id)
@@ -120,13 +123,13 @@ export async function POST() {
 
     // Apply updates to DB
     for (const update of updates) {
-      const patch: Record<string, unknown> = {};
+      const patch: GoalUpdate = {};
       if (update.status !== undefined) patch.status = update.status;
-      if (update.roadmap !== undefined) patch.roadmap = update.roadmap;
+      if (update.roadmap !== undefined) patch.roadmap = update.roadmap as unknown as GoalUpdate['roadmap'];
 
       if (Object.keys(patch).length > 0) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error: updateError } = await (db as any)
+        const { error: updateError } = await db
           .from('goals')
           .update(patch)
           .eq('id', update.id)
@@ -140,16 +143,16 @@ export async function POST() {
 
     // Refetch updated goals
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: refreshed, error: refreshError } = await (db as any)
+    const { data: refreshed, error: refreshError } = await db
       .from('goals')
-      .select('id, title, category, status, total_months, current_month, started_at, roadmap, created_at')
+      .select('id, user_id, title, category, status, total_months, current_month, started_at, roadmap, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: true });
 
     if (refreshError) throw new Error(refreshError.message);
 
     const order: Record<string, number> = { active: 0, done: 1, locked: 2 };
-    const sorted = [...((refreshed as GoalRow[]) ?? [])].sort(
+    const sorted = [...((refreshed as unknown as GoalRow[]) ?? [])].sort(
       (a, b) => (order[a.status] ?? 3) - (order[b.status] ?? 3)
     );
 

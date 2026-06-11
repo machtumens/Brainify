@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
     const db = createServiceClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (db as any)
+    const { data, error } = await db
       .from('sessions')
       .insert({
         user_id: user.id,

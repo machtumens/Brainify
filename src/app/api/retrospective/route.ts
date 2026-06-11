@@ -29,7 +29,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { callAI } from '@/lib/ai-router';
-import type { RetrospectiveRow } from '@/types/database';
+import type { RetrospectiveRow, Database } from '@/types/database';
 
 // ── CRON_SECRET auth ─────────────────────────────────────────────
 // Vercel sends: Authorization: Bearer <CRON_SECRET>
@@ -206,7 +206,7 @@ export async function POST(req: NextRequest) {
 
     const { createServiceClient } = await import('@/lib/supabase');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = createServiceClient() as any;
+    const db = createServiceClient();
 
     // Look up the single user (single-user prototype)
     const { data: firstUser } = await db
@@ -216,6 +216,13 @@ export async function POST(req: NextRequest) {
       .single();
 
     const userId: string | null = firstUser?.id ?? null;
+    if (!userId) {
+      // retrospectives.user_id is NOT NULL — without a user the insert can never succeed
+      return NextResponse.json(
+        { success: false, data: null, error: 'No user found — cannot store retrospective' },
+        { status: 409 }
+      );
+    }
 
     // Assemble last-7-day context
     const context = await assembleRetroContext(db);
@@ -239,15 +246,15 @@ export async function POST(req: NextRequest) {
     periodStart.setDate(periodStart.getDate() - 7);
     const period_start = periodStart.toISOString().slice(0, 10);
 
-    const insertRow: Record<string, unknown> = {
+    const insertRow: Database['public']['Tables']['retrospectives']['Insert'] = {
       period_type: 'weekly',
       period_start,
       content,
       coverage_rate: fields.coverage_rate,
       consistency_rate: fields.consistency_rate,
       risk_topic: fields.risk_topic,
+      user_id: userId,
     };
-    if (userId) insertRow.user_id = userId;
 
     const { data: retro, error: insertErr } = await db
       .from('retrospectives')
@@ -285,7 +292,7 @@ export async function GET() {
 
     const { createServiceClient } = await import('@/lib/supabase');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = createServiceClient() as any;
+    const db = createServiceClient();
 
     const { data, error } = await db
       .from('retrospectives')

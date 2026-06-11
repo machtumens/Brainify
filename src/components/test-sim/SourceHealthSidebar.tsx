@@ -42,7 +42,7 @@ export default function SourceHealthSidebar({ selectedTopics }: Props) {
 
     async function fetchHealth() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const db = createClient() as any;
+      const db = createClient();
 
       const { data } = await db
         .from('sources')
