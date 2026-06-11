@@ -59,11 +59,57 @@ export async function processImage(
     // Storage upload non-fatal — proceed without URL
   }
 
-  // Sprint 6: call Gemini multimodal API to extract text from image.
-  // For now: placeholder content so capture row is created with source_type='photo'.
-  const content = storageUrl
-    ? `[Image captured — text extraction coming in Sprint 6. Storage: ${storageUrl}]`
-    : '[Image captured — text extraction coming in Sprint 6]';
+  // v1.1: multimodal OCR — extract text + formulas from the image.
+  const extracted = await extractImageText(imageData, mimeType);
+  const content =
+    extracted ||
+    (storageUrl
+      ? `[Image captured — no text extracted. Storage: ${storageUrl}]`
+      : '[Image captured — no text extracted]');
 
   return { content, storageUrl, source_type: 'photo' };
+}
+
+// ── Multimodal OCR (v1.1 Phase 4) ────────────────────────────────
+// Handwritten/printed note → markdown text with formulas preserved.
+// Law 15: provider name never surfaces in returned content.
+
+async function extractImageText(imageData: Buffer, mimeType: string): Promise<string> {
+  if (!process.env.GEMINI_API_KEY) return '';
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text:
+                    'Transcribe ALL text in this study-note image to plain markdown. ' +
+                    'Preserve mathematical formulas in standard notation. ' +
+                    'If the image contains diagrams, describe them in one line each. ' +
+                    'Output only the transcription — no commentary.',
+                },
+                { inline_data: { mime_type: mimeType, data: imageData.toString('base64') } },
+              ],
+            },
+          ],
+        }),
+      }
+    );
+    if (!res.ok) return '';
+    const json = (await res.json()) as {
+      candidates?: { content?: { parts?: { text?: string }[] } }[];
+    };
+    return (
+      json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? ''
+    )
+      .trim()
+      .slice(0, 5000);
+  } catch {
+    return '';
+  }
 }

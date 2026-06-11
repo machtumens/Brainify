@@ -60,14 +60,26 @@ export default function ExamCountdown() {
       ]);
 
       const goal = goalsRes.data?.[0];
-      if (!goal?.started_at || !goal?.total_months) {
-        setNoExamDate(true);
-        return;
+
+      // v1.1: explicit exam registry is the source of truth; goals jsonb
+      // derivation remains the fallback.
+      let examDate: Date | null = null;
+      try {
+        const examsRes = await fetch('/api/exams').then((r) => r.json());
+        const next = examsRes?.data?.[0];
+        if (next?.exam_on) examDate = new Date(`${next.exam_on}T00:00:00`);
+      } catch { /* fall back to goal-derived */ }
+
+      if (!examDate) {
+        if (!goal?.started_at || !goal?.total_months) {
+          setNoExamDate(true);
+          return;
+        }
+        examDate = addMonths(new Date(goal.started_at), goal.total_months as number);
       }
 
-      const examDate = addMonths(new Date(goal.started_at), goal.total_months as number);
       const days = Math.max(0, daysUntil(examDate, today));
-      const topics = countUnfinishedTopics(goal.roadmap as unknown as GoalRoadmap);
+      const topics = goal ? countUnfinishedTopics(goal.roadmap as unknown as GoalRoadmap) : 0;
       const velocity = computeVelocity(sessionsRes.data ?? []);
 
       setData({ daysRemaining: days, topicsUnfinished: topics, pagesPerDay: velocity });

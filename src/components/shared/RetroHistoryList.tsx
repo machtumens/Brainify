@@ -107,6 +107,42 @@ function extractFromContent(
   return { velocity, recommendation, riskTopic };
 }
 
+// ── Trend chart (v1.1, suggestion #12) ────────────────────────────
+// Coverage + consistency over time, oldest → newest. Coverage solid
+// ink, consistency dashed ink3.
+
+function RetroTrendChart({ rows }: { rows: RetrospectiveRow[] }) {
+  const W = 520;
+  const H = 90;
+  const PAD = 16;
+
+  const series = [...rows].reverse(); // oldest first
+  const n = series.length;
+  const x = (i: number) => PAD + (i * (W - PAD * 2)) / Math.max(1, n - 1);
+  const y = (v: number) => H - PAD - Math.min(1, Math.max(0, v)) * (H - PAD * 2);
+
+  const line = (pick: (r: RetrospectiveRow) => number | null) =>
+    series
+      .map((r, i) => `${i === 0 ? 'M' : 'L'}${x(i)},${y(pick(r) ?? 0)}`)
+      .join(' ');
+
+  return (
+    <div style={{ ...ROW, paddingBottom: 8 }} data-testid="retro-trend-chart">
+      <p style={{ ...DATE_LABEL, marginBottom: 2 }}>
+        trend — <span style={{ color: 'var(--ink2)' }}>coverage</span> ·{' '}
+        <span style={{ color: 'var(--ink4)' }}>consistency (dashed)</span>
+      </p>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }} role="img" aria-label="Coverage and consistency trend">
+        <path d={line((r) => r.coverage_rate)} fill="none" stroke="var(--ink)" strokeWidth="1" />
+        <path d={line((r) => r.consistency_rate)} fill="none" stroke="var(--ink3)" strokeWidth="1" strokeDasharray="3 3" />
+        {series.map((r, i) => (
+          <circle key={r.id} cx={x(i)} cy={y(r.coverage_rate ?? 0)} r="2" fill="var(--ink)" />
+        ))}
+      </svg>
+    </div>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────────
 
 interface RetroHistoryListProps {
@@ -161,6 +197,7 @@ export default function RetroHistoryList({ initialRows }: RetroHistoryListProps)
 
   return (
     <div style={SCROLL_CONTAINER} data-testid="retro-history-list">
+      {rows.length >= 2 && <RetroTrendChart rows={rows} />}
       {rows.map((row) => {
         const { velocity, recommendation, riskTopic } = extractFromContent(row);
         return (

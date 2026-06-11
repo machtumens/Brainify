@@ -8,6 +8,7 @@ import type { GoalRow } from '@/types/database';
 import MacroGoalCard from '@/components/goals/MacroGoalCard';
 import VelocityChart from '@/components/goals/VelocityChart';
 import ReplanBanner from '@/components/goals/ReplanBanner';
+import ExamDatesCard from '@/components/goals/ExamDatesCard';
 import RetroHistoryList from '@/components/shared/RetroHistoryList';
 
 function GoalSkeleton() {
@@ -111,6 +112,9 @@ export default function GoalsPage() {
       <div style={{ marginTop: 24 }}>
         <VelocityChart />
       </div>
+
+      {/* ── Exam dates registry (v1.1) ── */}
+      <ExamDatesCard />
 
       {/* ── Weekly retrospectives ── */}
       <h2
