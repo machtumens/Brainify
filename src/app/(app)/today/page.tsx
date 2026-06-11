@@ -109,6 +109,12 @@ export default function TodayPage() {
             textAlign: 'right',
             margin: 0,
           }}>
+            <a
+              href="/memory"
+              style={{ color: 'var(--ink4)', textDecoration: 'underline', marginRight: 8 }}
+            >
+              memory
+            </a>
             {jobFailed && (
               <span
                 title="A background job failed — check /api/health"

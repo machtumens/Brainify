@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { createServiceClient } from '@/lib/supabase';
+import { rewriteMainMemory } from '@/lib/memory/memoryManager';
 
 interface SessionBody {
   task_title?: string;
@@ -74,6 +75,13 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) throw new Error(error.message);
+
+    // Memory rewrite — fire-and-forget, never blocks the response
+    rewriteMainMemory(
+      user.id,
+      'session',
+      `Study session logged: subject=${subject ?? 'unknown'}, task="${task_title ?? ''}", pomodoros=${body.pomodoros ?? 0}, pages=${body.pages_done ?? 0}, problems=${body.problems_done ?? 0}, difficulty=${body.difficulty ?? 1}, mode=${body.mode ?? 'standard'}${body.notes ? `, notes: ${body.notes}` : ''}`
+    ).catch(() => { /* memory lag is acceptable; request is not */ });
 
     return NextResponse.json({ success: true, data: { id: data.id }, error: null });
   } catch (err) {

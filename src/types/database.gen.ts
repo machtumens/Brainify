@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_memory: {
+        Row: {
+          content: string
+          id: string
+          scope: string
+          sections: Json | null
+          updated_at: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          content?: string
+          id?: string
+          scope: string
+          sections?: Json | null
+          updated_at?: string
+          user_id: string
+          version?: number
+        }
+        Update: {
+          content?: string
+          id?: string
+          scope?: string
+          sections?: Json | null
+          updated_at?: string
+          user_id?: string
+          version?: number
+        }
+        Relationships: []
+      }
+      memory_log: {
+        Row: {
+          created_at: string
+          id: string
+          scope: string
+          summary: string | null
+          trigger_type: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          scope: string
+          summary?: string | null
+          trigger_type: string
+          user_id: string
+          version: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          scope?: string
+          summary?: string | null
+          trigger_type?: string
+          user_id?: string
+          version?: number
+        }
+        Relationships: []
+      }
       captures: {
         Row: {
           confidence: number | null

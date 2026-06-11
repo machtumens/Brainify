@@ -22,6 +22,7 @@ import { cookies } from 'next/headers';
 import { createServiceClient } from '@/lib/supabase';
 import { sanitize, autoTag, hasMistakeKeyword } from '@/lib/ingest/textProcessor';
 import { rateLimited } from '@/lib/rateLimit';
+import { rewriteMainMemory } from '@/lib/memory/memoryManager';
 import { processAudio } from '@/lib/ingest/audioProcessor';
 import { processImage } from '@/lib/ingest/imageProcessor';
 import type { CaptureRow } from '@/types/database';
@@ -257,10 +258,15 @@ export async function POST(req: NextRequest) {
 
     if (captureError) throw new Error(captureError.message);
 
-    // 6 + 7. Non-fatal side effects — run in parallel, don't block response
+    // 6 + 7 + 8. Non-fatal side effects — run in parallel, don't block response
     Promise.all([
       maybeLogMistake(user.id, content, topic_tag),
       recalculateSourceQuality(user.id, topic_tag, capture.id as string),
+      rewriteMainMemory(
+        user.id,
+        'ingest',
+        `Capture ingested (${content_type ?? 'note'}, subject=${subject_tag ?? 'general'}, topic=${topic_tag ?? 'uncategorised'}): "${content.slice(0, 600)}"`
+      ),
     ]).catch(() => { /* non-fatal side-effect — does not block response */ });
 
     // 202 Accepted — content saved, side effects async

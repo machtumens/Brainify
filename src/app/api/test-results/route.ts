@@ -19,6 +19,7 @@
 import { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { rewriteMainMemory } from '@/lib/memory/memoryManager';
 import type { Question, SubmitTestRequest } from '@/types/test';
 
 async function getAuthUser() {
@@ -159,6 +160,14 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (trErr) throw trErr;
+
+    // Memory rewrite — fire-and-forget
+    const wrongTopics = Array.from(new Set(wrongQuestions.map((q) => q.topic))).slice(0, 5);
+    rewriteMainMemory(
+      user.id,
+      'test',
+      `Test submitted: ${score}/${questions.length} on topics [${topics.join(', ')}], duration ${duration}s.${wrongTopics.length > 0 ? ` Wrong answers in: ${wrongTopics.join(', ')}.` : ' No mistakes.'}`
+    ).catch(() => { /* memory lag acceptable */ });
 
     return Response.json({
       success: true,

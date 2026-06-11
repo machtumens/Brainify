@@ -22,6 +22,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import Groq from 'groq-sdk';
 import OpenAI from 'openai';
 import { assembleContext } from '@/lib/context-assembler';
+import { rewriteMainMemory } from '@/lib/memory/memoryManager';
 
 // ── Auth helper ──────────────────────────────────────────────────
 
@@ -99,6 +100,9 @@ function buildTutorPrompt(
   return [
     TUTOR_SYSTEM,
     '',
+    ...(context.permanent_memory
+      ? ['--- PERMANENT MEMORY (authoritative) ---', context.permanent_memory, '']
+      : []),
     '--- STUDENT CONTEXT ---',
     contextStr,
     '',
@@ -257,7 +261,7 @@ export async function POST(req: NextRequest) {
         content: String(m.content ?? '').replace(/<[^>]*>/g, '').slice(0, 1000),
       }));
 
-    const context = await assembleContext();
+    const context = await assembleContext({ userId: user.id, scope: 'tutor' });
     const prompt = buildTutorPrompt(context, history, userMessage);
 
     const encoder = new TextEncoder();
@@ -292,6 +296,15 @@ export async function POST(req: NextRequest) {
 
         controller.enqueue(encoder.encode('data: [DONE]\n\n'));
         controller.close();
+
+        if (streamed) {
+          // Memory rewrite after the exchange — fire-and-forget
+          rewriteMainMemory(
+            user.id,
+            'chat',
+            `Ask-AI exchange. Student asked: "${userMessage.slice(0, 500)}"`
+          ).catch(() => { /* memory lag acceptable */ });
+        }
       },
     });
 
