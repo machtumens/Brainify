@@ -17,10 +17,12 @@
 import { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { rateLimited } from '@/lib/rateLimit';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Groq from 'groq-sdk';
 import OpenAI from 'openai';
 import { assembleContext } from '@/lib/context-assembler';
+import { rewriteMainMemory } from '@/lib/memory/memoryManager';
 
 // ── Auth helper ──────────────────────────────────────────────────
 
@@ -62,6 +64,7 @@ RULES:
 - If you reference an error pattern, cite the specific topic from their error records.
 - Keep answers concise and direct. Use plain language — no academic prose, no headers unless the student asks.
 - Do not hallucinate textbook content. If asked about a formula or chapter not in context, say: "I don't have that chapter's content — try the primer for that topic."
+- WORKED EXAMPLES for new topics: if the student asks about a topic that does NOT appear in their sessions or confusion map (i.e. not yet studied), teach with a complete step-by-step worked example first — novices learn from examples; do not quiz them. For topics already in the danger or watch zones, prefer asking a guiding question before giving the answer (retrieval practice).
 - Never reveal the name of any AI provider, model, or API service.
 - If the student asks something unrelated to their studies, gently redirect: "Let's keep our focus on your study goals."`;
 
@@ -98,6 +101,9 @@ function buildTutorPrompt(
   return [
     TUTOR_SYSTEM,
     '',
+    ...(context.permanent_memory
+      ? ['--- PERMANENT MEMORY (authoritative) ---', context.permanent_memory, '']
+      : []),
     '--- STUDENT CONTEXT ---',
     contextStr,
     '',
@@ -124,7 +130,7 @@ async function streamGemini(
 ): Promise<void> {
   if (!process.env.GEMINI_API_KEY) throw new Error('Gemini key missing');
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
   const result = await model.generateContentStream(prompt);
   for await (const chunk of result.stream) {
     const text = chunk.text();
@@ -169,7 +175,7 @@ async function streamOpenRouter(
     apiKey: process.env.OPENROUTER_API_KEY,
   });
   const stream = await client.chat.completions.create({
-    model: 'mistralai/mistral-7b-instruct:free',
+    model: 'meta-llama/llama-3.3-70b-instruct:free',
     messages: [{ role: 'user', content: prompt }],
     stream: true,
   });
@@ -224,6 +230,13 @@ interface TutorBody {
 
 export async function POST(req: NextRequest) {
   try {
+    if (rateLimited('tutor')) {
+      return Response.json(
+        { success: false, data: null, error: 'Too many questions — wait a moment' },
+        { status: 429 }
+      );
+    }
+
     const user = await getAuthUser();
     if (!user) {
       return Response.json(
@@ -249,7 +262,7 @@ export async function POST(req: NextRequest) {
         content: String(m.content ?? '').replace(/<[^>]*>/g, '').slice(0, 1000),
       }));
 
-    const context = await assembleContext();
+    const context = await assembleContext({ userId: user.id, scope: 'tutor' });
     const prompt = buildTutorPrompt(context, history, userMessage);
 
     const encoder = new TextEncoder();
@@ -284,6 +297,15 @@ export async function POST(req: NextRequest) {
 
         controller.enqueue(encoder.encode('data: [DONE]\n\n'));
         controller.close();
+
+        if (streamed) {
+          // Memory rewrite after the exchange — fire-and-forget
+          rewriteMainMemory(
+            user.id,
+            'chat',
+            `Ask-AI exchange. Student asked: "${userMessage.slice(0, 500)}"`
+          ).catch(() => { /* memory lag acceptable */ });
+        }
       },
     });
 

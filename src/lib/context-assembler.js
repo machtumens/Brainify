@@ -128,7 +128,13 @@ export function computeContextConfusionMap(sessions, errors) {
   return { danger: danger.sort(), watch: watch.sort(), safe: safe.sort() };
 }
 
-export async function assembleContext() {
+/**
+ * Assemble live context for AI calls.
+ * v1.1: pass { userId, scope } to prepend permanent memory — memory is
+ * the FIRST key so it leads every serialized context block.
+ * @param {{ userId?: string, scope?: 'tutor'|'test_gen'|'brief'|'retro' }} [opts]
+ */
+export async function assembleContext(opts = {}) {
   const db = createServiceClient();
 
   const [goals, sessions, errors, captures, textbooks, sources] = await Promise.all([
@@ -142,5 +148,15 @@ export async function assembleContext() {
 
   const confusion_map = computeContextConfusionMap(sessions, errors);
 
-  return { goals, sessions, errors, captures, textbooks, sources, confusion_map };
+  let permanent_memory = null;
+  if (opts.userId) {
+    try {
+      const { readMemoryBlock } = await import('./memory/memoryManager');
+      permanent_memory = await readMemoryBlock(opts.userId, opts.scope);
+    } catch {
+      // memory unavailable (table not yet migrated, etc.) — context still works
+    }
+  }
+
+  return { permanent_memory, goals, sessions, errors, captures, textbooks, sources, confusion_map };
 }

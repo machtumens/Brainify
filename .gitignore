@@ -34,3 +34,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local tool artifacts
+.superpowers/
+supabase/.temp/
+
+mcp-server/node_modules/
+
+test-results/
+playwright-report/
+

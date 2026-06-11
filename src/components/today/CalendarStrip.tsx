@@ -43,7 +43,7 @@ export default function CalendarStrip() {
 
     async function loadDots() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const db = createClient() as any;
+      const db = createClient();
       const { data } = await db
         .from('sessions')
         .select('started_at')

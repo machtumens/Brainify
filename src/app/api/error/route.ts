@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
 
     const { createServiceClient } = await import('@/lib/supabase');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = createServiceClient() as any;
+    const db = createServiceClient();
 
     const { data, error } = await db
       .from('errors')
@@ -97,6 +97,49 @@ export async function POST(req: NextRequest) {
   } catch {
     return Response.json(
       { success: false, data: null, error: 'Failed to log error' },
+      { status: 500 }
+    );
+  }
+}
+
+// ── PATCH — attach a post-mortem to an existing error (v1.1) ─────
+// Body: { id, post_mortem }. Self-explanation effect: the student
+// writes one line on WHY the answer was wrong.
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const user = await getAuthUser();
+    if (!user) {
+      return Response.json(
+        { success: false, data: null, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const body = (await req.json()) as { id?: string; post_mortem?: string };
+    const id = String(body.id ?? '').trim();
+    const postMortem = String(body.post_mortem ?? '').trim().slice(0, 500);
+    if (!id || !postMortem) {
+      return Response.json(
+        { success: false, data: null, error: 'id and post_mortem required' },
+        { status: 400 }
+      );
+    }
+
+    const { createServiceClient } = await import('@/lib/supabase');
+    const db = createServiceClient();
+
+    const { error } = await db
+      .from('errors')
+      .update({ post_mortem: postMortem })
+      .eq('id', id)
+      .eq('user_id', user.id);
+    if (error) throw error;
+
+    return Response.json({ success: true, data: { id }, error: null });
+  } catch {
+    return Response.json(
+      { success: false, data: null, error: 'Failed to save post-mortem' },
       { status: 500 }
     );
   }

@@ -47,7 +47,7 @@ export default function TopicGrid({ selectedTopics, onToggle }: Props) {
 
     async function fetchTopics() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const db = createClient() as any;
+      const db = createClient();
 
       const [textbooksRes, errorsRes, sessionsRes] = await Promise.all([
         db.from('textbooks').select('subject, topic_map'),
@@ -60,8 +60,11 @@ export default function TopicGrid({ selectedTopics, onToggle }: Props) {
 
       if (cancelled) return;
 
-      const textbooks: Array<{ subject?: string | null; topic_map?: Record<string, string[]> | null }>
-        = textbooksRes.data ?? [];
+      // topic_map is jsonb (Json) — narrow at the query boundary
+      const textbooks = (textbooksRes.data ?? []).map((t) => ({
+        subject: t.subject,
+        topic_map: t.topic_map as Record<string, string[]> | null,
+      }));
       const errors: Array<{ topic?: string | null }> = errorsRes.data ?? [];
       const sessions: Array<{ subject?: string | null }> = sessionsRes.data ?? [];
 

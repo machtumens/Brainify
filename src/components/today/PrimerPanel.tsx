@@ -17,6 +17,8 @@ interface PrimerPanelProps {
 export default function PrimerPanel({ data, loading, onDismiss }: PrimerPanelProps) {
   const [isFirstTime, setIsFirstTime] = useState(false);
   const [countdown, setCountdown] = useState(MANDATORY_SECONDS);
+  // Active recall (v1.1): formula starts hidden — recall first, then reveal
+  const [formulaRevealed, setFormulaRevealed] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Detect first-time on mount
@@ -61,6 +63,7 @@ export default function PrimerPanel({ data, loading, onDismiss }: PrimerPanelPro
       style={{
         border: '1px solid var(--line)',
         borderRadius: 11,
+        boxShadow: 'var(--shadow-1)',
         padding: '14px 16px',
         background: 'var(--cream)',
         display: 'flex',
@@ -113,23 +116,43 @@ export default function PrimerPanel({ data, loading, onDismiss }: PrimerPanelPro
         </div>
       ) : data ? (
         <>
-          {/* Element 1: Key formula — monospace, --cream3 background */}
-          <div
-            aria-label="Key formula"
+          {/* Element 1: Key formula — active recall: hidden until revealed */}
+          {!formulaRevealed && (
+            <p style={{
+              margin: 0,
+              fontSize: 12,
+              fontStyle: 'italic',
+              fontFamily: 'Newsreader, serif',
+              color: 'var(--ink3)',
+            }}>
+              Recall the key formula for this topic before revealing it.
+            </p>
+          )}
+          <button
+            aria-label={formulaRevealed ? 'Key formula' : 'Reveal key formula'}
+            onClick={() => setFormulaRevealed(true)}
+            disabled={formulaRevealed}
             style={{
               fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
               fontSize: 13,
               fontWeight: 400,
               color: 'var(--ink)',
               background: 'var(--cream3)',
+              border: 'none',
               borderRadius: 7,
               padding: '8px 10px',
               lineHeight: 1.5,
               wordBreak: 'break-word',
+              textAlign: 'left',
+              width: '100%',
+              cursor: formulaRevealed ? 'default' : 'pointer',
+              filter: formulaRevealed ? 'none' : 'blur(6px)',
+              userSelect: formulaRevealed ? 'text' : 'none',
+              transition: 'filter var(--t-task)',
             }}
           >
             {data.formula}
-          </div>
+          </button>
 
           {/* Element 2: Last error — --red italic weight 300 */}
           <p

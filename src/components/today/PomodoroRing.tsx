@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import { usePomodoroTimer } from '@/hooks/usePomodoroTimer';
 import type { TimerMode } from '@/types/timer';
 
@@ -32,10 +33,29 @@ export default function PomodoroRing({ onStart }: PomodoroRingProps) {
   // Offset = 0 → full ring (start of session). Offset = CIRCUMFERENCE → empty (session done).
   const offset = CIRCUMFERENCE * (1 - timeRemaining / totalTime);
 
+  // Struggle note (v1.1): after a focus block completes (break phase),
+  // prompt once per session for a 10-second "what was hard" note.
+  const [note, setNote] = useState('');
+  const [notedSession, setNotedSession] = useState(-1);
+  const showNote = phase === 'break' && sessionCount > 0 && notedSession < sessionCount;
+
+  async function submitNote() {
+    const text = note.trim();
+    setNotedSession(sessionCount);
+    setNote('');
+    if (!text) return;
+    fetch('/api/ingest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: `Struggled with: ${text}`, source_type: 'quick_type' }),
+    }).catch(() => { /* non-blocking */ });
+  }
+
   return (
     <div style={{
       border: '1px solid var(--line)',
       borderRadius: 11,
+      boxShadow: 'var(--shadow-1)',
       padding: '14px 16px',
       display: 'flex',
       flexDirection: 'column',
@@ -46,6 +66,13 @@ export default function PomodoroRing({ onStart }: PomodoroRingProps) {
       {/* SVG Ring */}
       <div style={{ position: 'relative', width: 120, height: 120 }}>
         <svg viewBox="0 0 120 120" width="120" height="120" aria-hidden="true">
+          <defs>
+            {/* ADR-014: subtle ink gradient gives the ring dimensionality */}
+            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="var(--ink)" />
+              <stop offset="100%" stopColor="var(--ink3)" />
+            </linearGradient>
+          </defs>
           {/* Track */}
           <circle
             cx="60" cy="60" r="54"
@@ -53,17 +80,20 @@ export default function PomodoroRing({ onStart }: PomodoroRingProps) {
             stroke="var(--line)"
             strokeWidth="2"
           />
-          {/* Progress — clockwise from 12 o'clock */}
+          {/* Progress — clockwise from 12 o'clock; soft glow while running */}
           <circle
             cx="60" cy="60" r="54"
             fill="none"
-            stroke="var(--ink)"
-            strokeWidth="2"
+            stroke="url(#ringGrad)"
+            strokeWidth={isRunning ? 2.5 : 2}
             strokeLinecap="round"
             strokeDasharray={CIRCUMFERENCE}
             strokeDashoffset={offset}
             transform="rotate(-90 60 60)"
-            style={{ transition: 'stroke-dashoffset 1s linear' }}
+            style={{
+              transition: 'stroke-dashoffset 1s linear, stroke-width var(--spring-gentle)',
+              filter: isRunning ? 'drop-shadow(0 0 5px rgba(26, 25, 23, 0.28))' : 'none',
+            }}
           />
         </svg>
 
@@ -130,6 +160,43 @@ export default function PomodoroRing({ onStart }: PomodoroRingProps) {
           );
         })}
       </div>
+
+      {/* Struggle note — appears once after each completed focus block */}
+      {showNote && (
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <input
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') submitNote(); }}
+            placeholder="What did you struggle with?"
+            maxLength={300}
+            aria-label="Session struggle note"
+            style={{
+              width: '100%',
+              fontFamily: 'Newsreader, serif',
+              fontSize: 12,
+              color: 'var(--ink)',
+              background: 'var(--cream2)',
+              border: '1px solid var(--line)',
+              borderRadius: 99,
+              padding: '6px 12px',
+            }}
+          />
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+            <button
+              onClick={submitNote}
+              style={{
+                fontSize: 10, fontStyle: 'italic', fontFamily: 'Newsreader, serif',
+                color: 'var(--ink2)', background: 'transparent',
+                border: '1px solid var(--line2)', borderRadius: 99,
+                padding: '3px 12px', cursor: 'pointer',
+              }}
+            >
+              {note.trim() ? 'save note' : 'skip'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Mode toggle — visible only when paused/stopped */}
       {!isRunning && (

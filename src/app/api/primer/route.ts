@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
 
     // Fetch last error for this topic/subject
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const errorQuery = (db as any)
+    const errorQuery = db
       .from('errors')
       .select('topic, subtopic, problem_type, mistake_description, flagged_at')
       .eq('user_id', user.id)
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
 
     // Fetch last capture for this subject
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: captures } = await (db as any)
+    const { data: captures } = await db
       .from('captures')
       .select('content, type, topic_tag, created_at')
       .eq('user_id', user.id)
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
 
     // Fetch textbook for this subject
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: textbooks } = await (db as any)
+    const { data: textbooks } = await db
       .from('textbooks')
       .select('title, author, subject, current_page, total_pages, topic_map')
       .eq('user_id', user.id)

@@ -24,6 +24,8 @@ export interface GenerateTestResponse {
 export interface SubmitTestRequest {
   questions: Question[];
   selections: Record<string, number>; // questionId → selectedOptionIndex
+  /** v1.1: calibration — sure/unsure per answered question */
+  confidence?: Record<string, 'sure' | 'unsure'>;
   topics: string[];
   difficulty: 'easy' | 'medium' | 'hard';
   duration: number; // seconds elapsed
@@ -36,6 +38,8 @@ export interface TestResultSummary {
   duration: number;
   topics: string[];
   wrong_ids: string[];
+  /** v1.1: questionId → errors.id for wrong answers (post-mortem wiring) */
+  wrong_map?: Record<string, string>;
   created_at: string;
 }
 

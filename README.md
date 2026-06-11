@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Second Brain (Brainify)
 
-## Getting Started
+Personal learning OS for a practice-heavy student: proactive AI brief, task engine,
+Pomodoro + primer, confusion map, test simulator, textbook source web, weekly
+retrospectives, capture pipeline, and a **permanent AI memory** shared by every feature.
 
-First, run the development server:
+Stack: Next.js 15 · React 19 · Supabase (Postgres + RLS) · Tailwind · AI cascade
+(Gemini → Groq → OpenRouter) · Playwright + Jest.
+
+## Run
 
 ```bash
+npm install
+cp .env.local.example .env.local   # fill in Supabase + AI keys
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Apply SQL in `supabase/migrations/` (001 → 005) in the Supabase SQL editor, in order.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | What |
+|---------|------|
+| `npm run dev` / `build` / `start` | Next.js |
+| `npm run test:unit` | Jest unit tests (algorithms, processors, router) |
+| `npm run test:e2e` | Playwright E2E |
 
-## Learn More
+## Memory architecture (v1.1)
 
-To learn more about Next.js, take a look at the following resources:
+One **main memory** (`ai_memory.scope='main'`) — a markdown document every AI call
+reads first. Every platform use (session logged, test submitted, chat, capture)
+triggers an AI distill that rewrites the whole document (`memory_log` keeps history).
+Scoped memories (`tutor`, `test_gen`, `brief`, `retro`) layer on top.
+View/edit at `/memory`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Read order in every prompt: **main memory → scope memory → live context**
+(`src/lib/memory/memoryManager.ts`, `src/lib/context-assembler.js`).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## MCP server
 
-## Deploy on Vercel
+`mcp-server/` exposes the learning OS to MCP clients (Claude Code / Claude Desktop)
+over stdio. Tools:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+`memory_read` · `memory_write` · `quiz_generate` · `quiz_history` · `textbook_list` ·
+`textbook_pull` · `captures_search` · `confusion_map_get` · `session_log`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Setup:
+
+```bash
+cd mcp-server && npm install && npm run smoke   # protocol smoke test
+```
+
+The repo's `.mcp.json` registers the server for Claude Code automatically (it reads
+env from `.env.local`). For Claude Desktop, add to `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "second-brain": {
+      "command": "npx",
+      "args": ["tsx", "<repo-path>/mcp-server/src/index.ts"]
+    }
+  }
+}
+```
+
+## Docs
+
+- `docs/planning/` — ROADMAP, principles, design laws, all 25 build prompts
+- `docs/adr/` — architecture decision records
+- `docs/prompts/` — prompt archaeology (brief, primer, tutor, test-gen, retro, memory distill)

@@ -25,6 +25,7 @@ export default function QuestionCard({
       style={{
         border: '1px solid var(--line)',
         borderRadius: 11,
+        boxShadow: 'var(--shadow-1)',
         background: 'var(--cream)',
         padding: '16px 18px',
         display: 'flex',

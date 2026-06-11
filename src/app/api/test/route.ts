@@ -20,6 +20,7 @@
 import { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { rateLimited } from '@/lib/rateLimit';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Groq from 'groq-sdk';
 import OpenAI from 'openai';
@@ -78,15 +79,21 @@ async function fetchMaterials(topics: string[]): Promise<{
   // Server-side: use service client for full read access
   const { createServiceClient } = await import('@/lib/supabase');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = createServiceClient() as any;
+  const db = createServiceClient();
 
   const [tbRes, capRes, errRes] = await Promise.all([
     db.from('textbooks').select('subject, title, topic_map'),
-    db.from('captures').select('content, subject_tag, topic_tag').order('captured_at', { ascending: false }).limit(50),
+    db.from('captures').select('content, subject_tag, topic_tag').order('created_at', { ascending: false }).limit(50),
     db.from('errors').select('topic, subtopic').order('flagged_at', { ascending: false }).limit(100),
   ]);
 
-  const textbooks: TextbookRow[] = (tbRes.data ?? []).filter((t: TextbookRow) =>
+  // topic_map is jsonb — narrow from Json at the query boundary
+  const tbRows: TextbookRow[] = (tbRes.data ?? []).map((t) => ({
+    subject: t.subject,
+    title: t.title,
+    topic_map: t.topic_map as TextbookRow['topic_map'],
+  }));
+  const textbooks: TextbookRow[] = tbRows.filter((t: TextbookRow) =>
     topics.some((topic) =>
       t.subject?.toLowerCase() === topic.toLowerCase() ||
       Object.values(t.topic_map ?? {}).flat().some(
@@ -153,7 +160,8 @@ CRITICAL RULES:
 3. Distribute difficulty: ${easyCount} easy, ${mediumCount} medium, ${hardCount} hard question${count !== 1 ? 's' : ''}.
 4. Weight questions toward DANGER ZONE topics (topics with most recorded mistakes): ${dangerTopics.length > 0 ? dangerTopics.join(', ') : 'none flagged — distribute evenly'}.
 5. Cover these selected topics: ${topics.join(', ')}.
-6. Output ONLY valid JSON — no markdown, no explanation, no preamble.
+6. INTERLEAVE topics: when more than one topic is selected, alternate topics between consecutive questions — never group all questions of one topic together (interleaved practice transfers better than blocked).
+7. Output ONLY valid JSON — no markdown, no explanation, no preamble.
 
 SOURCE MATERIALS:
 ${textbookSummary || '(no textbook chapters available for selected topics)'}
@@ -180,7 +188,7 @@ Generate exactly ${count} question${count !== 1 ? 's' : ''} now.`;
 async function callGemini(prompt: string): Promise<string> {
   if (!process.env.GEMINI_API_KEY) throw new Error('Gemini key missing');
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
   const result = await model.generateContent(prompt);
   return result.response.text();
 }
@@ -203,7 +211,7 @@ async function callOpenRouter(prompt: string): Promise<string> {
     apiKey: process.env.OPENROUTER_API_KEY,
   });
   const completion = await client.chat.completions.create({
-    model: 'mistralai/mistral-7b-instruct:free',
+    model: 'meta-llama/llama-3.3-70b-instruct:free',
     messages: [{ role: 'user', content: prompt }],
     stream: false,
   });
@@ -282,6 +290,13 @@ function parseQuestions(raw: string): Question[] {
 
 export async function POST(req: NextRequest) {
   try {
+    if (rateLimited('test')) {
+      return Response.json(
+        { success: false, data: null, error: 'Test generation rate limit — wait a minute' },
+        { status: 429 }
+      );
+    }
+
     const user = await getAuthUser();
     if (!user) {
       return Response.json(

@@ -30,18 +30,16 @@ export default function ConfusionMap() {
     async function fetchAndCompute() {
       const db = createClient();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const dbAny = db as any;
-    const [sessionsRes, errorsRes, textbooksRes] = await Promise.all([
-        dbAny.from('sessions').select('subject').order('started_at', { ascending: false }).limit(30),
-        dbAny.from('errors').select('topic'),
-        dbAny.from('textbooks').select('subject'),
+      const [sessionsRes, errorsRes, textbooksRes] = await Promise.all([
+        db.from('sessions').select('subject').order('started_at', { ascending: false }).limit(30),
+        db.from('errors').select('topic, confidence'),
+        db.from('textbooks').select('subject'),
       ]);
 
       if (cancelled) return;
 
       const sessions: Array<{ subject?: string | null }> = sessionsRes.data ?? [];
-      const errors: Array<{ topic?: string | null }> = errorsRes.data ?? [];
+      const errors: Array<{ topic?: string | null; confidence?: string | null }> = errorsRes.data ?? [];
       const textbookSubjects: string[] = (textbooksRes.data ?? [])
         .map((t: { subject?: string | null }) => t.subject)
         .filter((s: unknown): s is string => typeof s === 'string' && s.length > 0);
@@ -68,6 +66,7 @@ export default function ConfusionMap() {
       style={{
         border: '1px solid var(--line)',
         borderRadius: 11,
+        boxShadow: 'var(--shadow-1)',
         overflow: 'hidden',
       }}
     >

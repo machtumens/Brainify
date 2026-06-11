@@ -25,7 +25,7 @@ export interface UseChatReturn {
   contextCounts: ContextCounts | null;
   streamError: string | null;
   submit: () => Promise<void>;
-  messagesEndRef: React.RefObject<HTMLDivElement>;
+  messagesEndRef: React.RefObject<HTMLDivElement | null>;
 }
 
 function generateId(): string {

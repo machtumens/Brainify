@@ -83,17 +83,18 @@ export default function TaskList() {
   useEffect(() => {
     const supabase = createClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase as any)
+    supabase
       .from('goals')
       .select('*')
       .eq('status', 'active')
-      .then(({ data, error }: { data: GoalRow[] | null; error: { message: string } | null }) => {
+      .then(({ data, error }) => {
         if (error || !data) {
           setStatus('error');
           return;
         }
         const doneIds = loadDoneIds();
-        setTasks(buildTasks(data, doneIds));
+        // jsonb roadmap is Json — narrow at the query boundary
+        setTasks(buildTasks(data as unknown as GoalRow[], doneIds));
         setStatus('loaded');
       });
   }, []);

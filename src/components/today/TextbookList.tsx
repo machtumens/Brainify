@@ -15,13 +15,14 @@ export default function TextbookList() {
     const supabase = createClient();
     const today = new Date().toISOString().slice(0, 10);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase as any)
+    supabase
       .from('textbooks')
       .select('*')
       .lte('active_from', today)
-      .then(({ data, error }: { data: TextbookRow[] | null; error: { message: string } | null }) => {
+      .then(({ data, error }) => {
         if (error || !data) { setStatus('error'); return; }
-        setBooks(data);
+        // jsonb topic_map is Json — narrow at the query boundary
+        setBooks(data as unknown as TextbookRow[]);
         setStatus('loaded');
       });
   }, []);

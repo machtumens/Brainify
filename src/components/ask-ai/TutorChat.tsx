@@ -11,7 +11,7 @@ interface Props {
   onInputChange: (v: string) => void;
   onSubmit: () => Promise<void>;
   streamError: string | null;
-  messagesEndRef: React.RefObject<HTMLDivElement>;
+  messagesEndRef: React.RefObject<HTMLDivElement | null>;
 }
 
 function MessageBubble({ message, isStreaming }: { message: Message; isStreaming: boolean }) {

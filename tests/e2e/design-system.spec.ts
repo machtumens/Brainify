@@ -79,6 +79,28 @@ test.describe('Design System', () => {
     expect(boxShadow).toBe('none');
   });
 
+  // ADR-014 (v1.1): depth tokens exist — shadows allowed via var(--shadow-*) only
+  test('depth tokens are defined (ADR-014)', async ({ page }) => {
+    await page.goto('/');
+    const depth = await page.evaluate(() => {
+      const style = getComputedStyle(document.documentElement);
+      return {
+        shadow1: style.getPropertyValue('--shadow-1').trim(),
+        shadow2: style.getPropertyValue('--shadow-2').trim(),
+        shadow3: style.getPropertyValue('--shadow-3').trim(),
+        blurGlass: style.getPropertyValue('--blur-glass').trim(),
+        springGentle: style.getPropertyValue('--spring-gentle').trim(),
+        springSnappy: style.getPropertyValue('--spring-snappy').trim(),
+      };
+    });
+    expect(depth.shadow1).toContain('rgba(26, 25, 23');
+    expect(depth.shadow2).toContain('rgba(26, 25, 23');
+    expect(depth.shadow3).toContain('rgba(26, 25, 23');
+    expect(depth.blurGlass).toContain('blur');
+    expect(depth.springGentle).toContain('cubic-bezier');
+    expect(depth.springSnappy).toContain('cubic-bezier');
+  });
+
   test('timing tokens are defined', async ({ page }) => {
     await page.goto('/');
     const timings = await page.evaluate(() => {

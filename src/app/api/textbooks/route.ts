@@ -135,7 +135,7 @@ export async function GET() {
 
     const { createServiceClient } = await import('@/lib/supabase');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = createServiceClient() as any;
+    const db = createServiceClient();
 
     const [booksRes, sourcesRes] = await Promise.all([
       db
@@ -200,7 +200,7 @@ export async function POST(req: NextRequest) {
     const body = (await req.json()) as Partial<PostBody>;
     const { createServiceClient } = await import('@/lib/supabase');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = createServiceClient() as any;
+    const db = createServiceClient();
 
     // ── action: register ─────────────────────────────────────────
     if (body.action === 'register') {
@@ -307,7 +307,7 @@ export async function POST(req: NextRequest) {
 
       // Recalculate sources async — does not block response
       recalculateTextbookSources(
-        db, user.id, id, book.topic_map ?? {}, capped, book.total_pages ?? 0
+        db, user.id, id, (book.topic_map ?? {}) as TopicMap, capped, book.total_pages ?? 0
       ).catch(() => { /* non-fatal */ });
 
       return Response.json({ success: true, data: updated, error: null });

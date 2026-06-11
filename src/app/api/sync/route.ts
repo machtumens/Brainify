@@ -34,6 +34,7 @@ import * as path from 'path';
 import * as fs from 'fs/promises';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { logJobRun } from '@/lib/systemLog';
 import { buildCandidates } from '@/lib/sync/fileProcessor';
 import { autoTag } from '@/lib/ingest/textProcessor';
 
@@ -135,7 +136,7 @@ export async function POST(req: NextRequest) {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = createServiceClient() as any;
+  const db = createServiceClient();
   let filesFound = 0;
   let filesIngested = 0;
   const runErrors: string[] = [];
@@ -212,6 +213,12 @@ export async function POST(req: NextRequest) {
   } catch {
     // Don't let log failure propagate — it would mask the real result
   }
+
+  await logJobRun(
+    'sync',
+    runErrors.length > 0 ? 'error' : 'ok',
+    `found=${filesFound} ingested=${filesIngested}${runErrors.length > 0 ? ` errors: ${runErrors.slice(0, 3).join('; ')}` : ''}`
+  );
 
   return NextResponse.json({
     success: true,

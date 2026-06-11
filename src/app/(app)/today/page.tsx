@@ -12,15 +12,21 @@ import PrimerPanel from '@/components/today/PrimerPanel';
 import ConfusionMap from '@/components/today/ConfusionMap';
 import CalendarStrip from '@/components/today/CalendarStrip';
 import ExamCountdown from '@/components/today/ExamCountdown';
+import ReviewQueue from '@/components/today/ReviewQueue';
 import type { PrimerData } from '@/app/api/primer/route';
 
-function useSyncLastRun(): string {
+function useSyncLastRun(): { label: string; jobFailed: boolean } {
   const [label, setLabel] = useState('');
+  const [jobFailed, setJobFailed] = useState(false);
 
   useEffect(() => {
     fetch('/api/health')
       .then((r) => r.json())
       .then((json) => {
+        const jobs = json?.data?.jobs;
+        setJobFailed(
+          jobs?.sync?.status === 'error' || jobs?.retrospective?.status === 'error'
+        );
         const raw: string = json?.data?.sync_last_run ?? '';
         if (!raw || raw === 'never') {
           setLabel('never synced');
@@ -35,14 +41,14 @@ function useSyncLastRun(): string {
       .catch(() => { /* silent — sync status is non-critical */ });
   }, []);
 
-  return label;
+  return { label, jobFailed };
 }
 
 export default function TodayPage() {
   const [showPrimer, setShowPrimer] = useState(false);
   const [primerLoading, setPrimerLoading] = useState(false);
   const [primerData, setPrimerData] = useState<PrimerData | null>(null);
-  const syncLabel = useSyncLastRun();
+  const { label: syncLabel, jobFailed } = useSyncLastRun();
 
   const handlePomodoroStart = useCallback(async () => {
     // Show primer immediately with loading state — non-blocking
@@ -79,6 +85,7 @@ export default function TodayPage() {
       {/* Left column — AI brief, task checklist, textbook bars, calendar */}
       <div style={{ minWidth: 320, display: 'flex', flexDirection: 'column', gap: 24 }}>
         <BriefPanel />
+        <ReviewQueue />
         <TaskList />
         <TextbookList />
         <CalendarStrip />
@@ -104,6 +111,26 @@ export default function TodayPage() {
             textAlign: 'right',
             margin: 0,
           }}>
+            <a
+              href="/memory"
+              style={{ color: 'var(--ink4)', textDecoration: 'underline', marginRight: 8 }}
+            >
+              memory
+            </a>
+            {jobFailed && (
+              <span
+                title="A background job failed — check /api/health"
+                style={{
+                  display: 'inline-block',
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: 'var(--red)',
+                  marginRight: 6,
+                  verticalAlign: 'middle',
+                }}
+              />
+            )}
             {syncLabel}
           </p>
         )}

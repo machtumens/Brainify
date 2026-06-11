@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { lastJobRun } from '@/lib/systemLog';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Groq from 'groq-sdk';
 import OpenAI from 'openai';
@@ -10,7 +11,7 @@ async function checkGemini(): Promise<boolean> {
   if (!process.env.GEMINI_API_KEY) return false;
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
     await model.generateContent('ping');
     return true;
   } catch {
@@ -41,7 +42,7 @@ async function checkOpenRouter(): Promise<boolean> {
       apiKey: process.env.OPENROUTER_API_KEY,
     });
     await client.chat.completions.create({
-      model: 'mistralai/mistral-7b-instruct:free',
+      model: 'meta-llama/llama-3.3-70b-instruct:free',
       messages: [{ role: 'user', content: 'ping' }],
       max_tokens: 1,
     });
@@ -55,7 +56,7 @@ async function checkRetroLastRun(): Promise<string | null> {
   try {
     const { createServiceClient } = await import('@/lib/supabase');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = createServiceClient() as any;
+    const db = createServiceClient();
     const { data } = await db
       .from('retrospectives')
       .select('created_at')
@@ -73,7 +74,7 @@ async function checkSyncLastRun(): Promise<string | null> {
   try {
     const { createServiceClient } = await import('@/lib/supabase');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = createServiceClient() as any;
+    const db = createServiceClient();
     const { data } = await db
       .from('sync_log')
       .select('run_at')
@@ -87,12 +88,14 @@ async function checkSyncLastRun(): Promise<string | null> {
 }
 
 export async function GET() {
-  const [gemini, groq, openrouter, retroLastRun, syncLastRun] = await Promise.all([
+  const [gemini, groq, openrouter, retroLastRun, syncLastRun, syncJob, retroJob] = await Promise.all([
     checkGemini(),
     checkGroq(),
     checkOpenRouter(),
     checkRetroLastRun(),
     checkSyncLastRun(),
+    lastJobRun('sync'),
+    lastJobRun('retrospective'),
   ]);
 
   const anyAvailable = gemini || groq || openrouter;
@@ -106,6 +109,10 @@ export async function GET() {
         openrouter: openrouter ? 'ok' : 'unavailable',
         retro_cron: retroLastRun ?? 'never',
         sync_last_run: syncLastRun ?? 'never',
+        jobs: {
+          sync: syncJob ?? { status: 'never', detail: null, created_at: null },
+          retrospective: retroJob ?? { status: 'never', detail: null, created_at: null },
+        },
       },
       error: anyAvailable ? null : 'All AI providers unavailable',
     },

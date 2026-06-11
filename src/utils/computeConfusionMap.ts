@@ -14,6 +14,8 @@ interface SessionRecord {
 interface ErrorRecord {
   topic?: string | null;
   count?: number;
+  /** 'sure' = confidently wrong — weighs 2x (calibration failure is the real danger zone) */
+  confidence?: string | null;
 }
 
 function normTopic(t: string): string {
@@ -39,12 +41,13 @@ export function computeConfusionMap(
     if (s.subject) coveredSet.add(normTopic(s.subject));
   }
 
-  // Error counts per topic
+  // Error counts per topic — confidently-wrong errors count double
   const errorCountMap = new Map<string, number>();
   for (const e of errors) {
     if (!e.topic) continue;
     const key = normTopic(e.topic);
-    errorCountMap.set(key, (errorCountMap.get(key) ?? 0) + (e.count ?? 1));
+    const weight = e.confidence === 'sure' ? 2 : 1;
+    errorCountMap.set(key, (errorCountMap.get(key) ?? 0) + (e.count ?? 1) * weight);
   }
 
   // All topics from sessions + errors

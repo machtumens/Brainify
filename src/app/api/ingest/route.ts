@@ -21,6 +21,8 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { createServiceClient } from '@/lib/supabase';
 import { sanitize, autoTag, hasMistakeKeyword } from '@/lib/ingest/textProcessor';
+import { rateLimited } from '@/lib/rateLimit';
+import { rewriteMainMemory } from '@/lib/memory/memoryManager';
 import { processAudio } from '@/lib/ingest/audioProcessor';
 import { processImage } from '@/lib/ingest/imageProcessor';
 import type { CaptureRow } from '@/types/database';
@@ -64,7 +66,7 @@ async function recalculateSourceQuality(
 
   // Count captures for this topic
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { count } = await (db as any)
+  const { count } = await db
     .from('captures')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
@@ -76,7 +78,7 @@ async function recalculateSourceQuality(
   // Upsert: one sources row per (user_id, topic, resource_type='capture')
   // Use the triggering capture's id as resource_id
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (db as any)
+  await db
     .from('sources')
     .upsert(
       {
@@ -102,7 +104,7 @@ async function maybeLogMistake(
 
   const db = createServiceClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (db as any).from('errors').insert({
+  await db.from('errors').insert({
     user_id: userId,
     session_id: null,
     topic: topicTag || null,
@@ -177,6 +179,13 @@ async function handleMultipart(req: NextRequest): Promise<{
 
 export async function POST(req: NextRequest) {
   try {
+    if (rateLimited('ingest')) {
+      return NextResponse.json(
+        { success: false, data: null, error: 'Too many captures — wait a moment' },
+        { status: 429 }
+      );
+    }
+
     // 1. Auth
     const user = await getAuthUser();
     if (!user) {
@@ -217,7 +226,7 @@ export async function POST(req: NextRequest) {
     // 3. Fetch textbook titles for auto-tag context (lightweight — titles only)
     const db = createServiceClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: textbooks } = await (db as any)
+    const { data: textbooks } = await db
       .from('textbooks')
       .select('title')
       .eq('user_id', user.id);
@@ -233,7 +242,7 @@ export async function POST(req: NextRequest) {
 
     // 5. Write to captures
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: capture, error: captureError } = await (db as any)
+    const { data: capture, error: captureError } = await db
       .from('captures')
       .insert({
         user_id: user.id,
@@ -249,10 +258,15 @@ export async function POST(req: NextRequest) {
 
     if (captureError) throw new Error(captureError.message);
 
-    // 6 + 7. Non-fatal side effects — run in parallel, don't block response
+    // 6 + 7 + 8. Non-fatal side effects — run in parallel, don't block response
     Promise.all([
       maybeLogMistake(user.id, content, topic_tag),
       recalculateSourceQuality(user.id, topic_tag, capture.id as string),
+      rewriteMainMemory(
+        user.id,
+        'ingest',
+        `Capture ingested (${content_type ?? 'note'}, subject=${subject_tag ?? 'general'}, topic=${topic_tag ?? 'uncategorised'}): "${content.slice(0, 600)}"`
+      ),
     ]).catch(() => { /* non-fatal side-effect — does not block response */ });
 
     // 202 Accepted — content saved, side effects async
