@@ -39,3 +39,5 @@ next-env.d.ts
 .superpowers/
 supabase/.temp/
 
+mcp-server/node_modules/
+
