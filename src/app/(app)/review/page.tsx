@@ -76,7 +76,7 @@ export default function ReviewPage() {
 
       {status === 'loaded' && !current && (
         <div style={{
-          border: '1px solid var(--line)', borderRadius: 11,
+          border: '1px solid var(--line)', borderRadius: 11, boxShadow: 'var(--shadow-1)',
           background: 'var(--cream2)', padding: '40px 24px', textAlign: 'center',
         }}>
           <p style={{ margin: 0, fontSize: 15, fontStyle: 'italic', color: 'var(--ink2)' }}>
@@ -90,7 +90,7 @@ export default function ReviewPage() {
 
       {current && (
         <div style={{
-          border: '1px solid var(--line)', borderRadius: 11,
+          border: '1px solid var(--line)', borderRadius: 11, boxShadow: 'var(--shadow-1)',
           background: 'var(--cream)', padding: '24px 20px',
           display: 'flex', flexDirection: 'column', gap: 16, flex: 1,
         }}>

@@ -55,6 +55,7 @@ export default function PomodoroRing({ onStart }: PomodoroRingProps) {
     <div style={{
       border: '1px solid var(--line)',
       borderRadius: 11,
+      boxShadow: 'var(--shadow-1)',
       padding: '14px 16px',
       display: 'flex',
       flexDirection: 'column',
@@ -65,6 +66,13 @@ export default function PomodoroRing({ onStart }: PomodoroRingProps) {
       {/* SVG Ring */}
       <div style={{ position: 'relative', width: 120, height: 120 }}>
         <svg viewBox="0 0 120 120" width="120" height="120" aria-hidden="true">
+          <defs>
+            {/* ADR-014: subtle ink gradient gives the ring dimensionality */}
+            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="var(--ink)" />
+              <stop offset="100%" stopColor="var(--ink3)" />
+            </linearGradient>
+          </defs>
           {/* Track */}
           <circle
             cx="60" cy="60" r="54"
@@ -72,17 +80,20 @@ export default function PomodoroRing({ onStart }: PomodoroRingProps) {
             stroke="var(--line)"
             strokeWidth="2"
           />
-          {/* Progress — clockwise from 12 o'clock */}
+          {/* Progress — clockwise from 12 o'clock; soft glow while running */}
           <circle
             cx="60" cy="60" r="54"
             fill="none"
-            stroke="var(--ink)"
-            strokeWidth="2"
+            stroke="url(#ringGrad)"
+            strokeWidth={isRunning ? 2.5 : 2}
             strokeLinecap="round"
             strokeDasharray={CIRCUMFERENCE}
             strokeDashoffset={offset}
             transform="rotate(-90 60 60)"
-            style={{ transition: 'stroke-dashoffset 1s linear' }}
+            style={{
+              transition: 'stroke-dashoffset 1s linear, stroke-width var(--spring-gentle)',
+              filter: isRunning ? 'drop-shadow(0 0 5px rgba(26, 25, 23, 0.28))' : 'none',
+            }}
           />
         </svg>
 

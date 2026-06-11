@@ -67,6 +67,7 @@ export default function ReplanBanner({ goal, onApplied }: Props) {
     <div style={{
       border: '1px solid var(--line)',
       borderRadius: 11,
+      boxShadow: 'var(--shadow-1)',
       background: 'var(--amber-pill)',
       padding: '12px 16px',
       display: 'flex',

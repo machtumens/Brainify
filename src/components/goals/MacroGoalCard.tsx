@@ -116,6 +116,7 @@ export default function MacroGoalCard({ goal, onItemCheck }: Props) {
       style={{
         border: '1px solid var(--line)',
         borderRadius: 11,
+        boxShadow: 'var(--shadow-1)',
         padding: '14px 16px',
         background: 'var(--cream)',
         opacity: isLocked ? 0.5 : 1,

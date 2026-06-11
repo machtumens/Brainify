@@ -77,7 +77,7 @@ export default function TestRunner({
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }} aria-label="Active test">
       {/* Timer bar */}
       <div style={{
-        border: '1px solid var(--line)', borderRadius: 11, background: 'var(--cream)',
+        border: '1px solid var(--line)', borderRadius: 11, boxShadow: 'var(--shadow-1)', background: 'var(--cream)',
         padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 16,
       }}>
         <span

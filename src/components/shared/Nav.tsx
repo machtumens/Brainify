@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { motion, useReducedMotion } from 'framer-motion';
+import { springSnappy } from '@/lib/motion';
 
 const NAV_ITEMS = [
   { href: '/today', label: 'today' },
@@ -22,6 +24,7 @@ function formatDate(date: Date): string {
 
 export default function Nav() {
   const pathname = usePathname();
+  const reduce = useReducedMotion();
   const today = formatDate(new Date());
 
   return (
@@ -56,22 +59,40 @@ export default function Nav() {
             href={href}
             aria-current={active ? 'page' : undefined}
             style={{
+              position: 'relative',
               fontSize: 13,
               fontWeight: 400,
               color: active ? 'var(--ink)' : 'var(--ink2)',
               padding: '5px 12px',
               borderRadius: 99,
-              border: active ? '1px solid var(--line2)' : '1px solid transparent',
-              background: active ? 'var(--cream3)' : 'transparent',
+              // pill rendered by the shared motion layer below (ADR-014)
+              border: '1px solid transparent',
+              background: 'transparent',
               textDecoration: 'none',
-              transition: 'background var(--t-fast), border-color var(--t-fast), color var(--t-fast)',
+              transition: 'color var(--t-fast)',
               display: 'inline-flex',
               alignItems: 'center',
               minHeight: 44,
               whiteSpace: 'nowrap',
             }}
           >
-            {label}
+            {active && (
+              <motion.span
+                layoutId="nav-active-pill"
+                transition={reduce ? { duration: 0 } : springSnappy}
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  inset: 5.5,
+                  borderRadius: 99,
+                  background: 'var(--cream3)',
+                  border: '1px solid var(--line2)',
+                  boxShadow: 'var(--shadow-1)',
+                  zIndex: 0,
+                }}
+              />
+            )}
+            <span style={{ position: 'relative', zIndex: 1 }}>{label}</span>
           </Link>
         );
       })}

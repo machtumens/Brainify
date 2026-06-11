@@ -34,14 +34,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{
+    <div className="ambient-drift" style={{
       minHeight: '100vh',
-      background: 'var(--cream)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
     }}>
-      <div style={{ width: 320 }}>
+      <div style={{
+        width: 320,
+        background: 'var(--cream)',
+        border: '1px solid var(--line)',
+        borderRadius: 14,
+        boxShadow: 'var(--shadow-3)',
+        padding: '28px 24px',
+      }}>
         <h1 style={{
           fontSize: 15,
           fontStyle: 'italic',

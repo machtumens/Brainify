@@ -80,7 +80,7 @@ export default function VelocityChart() {
     <section
       aria-label="Weekly velocity"
       style={{
-        border: '1px solid var(--line)', borderRadius: 11,
+        border: '1px solid var(--line)', borderRadius: 11, boxShadow: 'var(--shadow-1)',
         background: 'var(--cream)', padding: '14px 16px',
       }}
     >

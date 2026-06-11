@@ -22,8 +22,12 @@ export default function CaptureBar() {
         bottom: 0,
         width: '100%',
         padding: '12px 24px 16px',
-        background: 'var(--cream)',
+        // ADR-014: glass surface — content scrolls beneath the capture bar
+        background: 'color-mix(in srgb, var(--cream) 78%, transparent)',
+        backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
         borderTop: '1px solid var(--line)',
+        boxShadow: 'var(--shadow-2)',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -46,9 +50,16 @@ export default function CaptureBar() {
             background: 'var(--cream)',
             color: 'var(--ink)',
             outline: 'none',
+            transition: 'border-color var(--t-fast), box-shadow var(--spring-gentle)',
           }}
-          onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--ink2)')}
-          onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--line2)')}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = 'var(--ink2)';
+            e.currentTarget.style.boxShadow = 'var(--shadow-2)';
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = 'var(--line2)';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
         />
 
         {/* Voice button — hold to record */}

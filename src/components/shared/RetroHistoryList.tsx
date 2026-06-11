@@ -23,6 +23,7 @@ const SCROLL_CONTAINER: React.CSSProperties = {
 const ROW: React.CSSProperties = {
   border: '1px solid var(--line)',
   borderRadius: 11,
+  boxShadow: 'var(--shadow-1)',
   padding: '12px 14px',
   background: 'var(--cream)',
 };

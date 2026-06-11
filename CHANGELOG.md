@@ -2,6 +2,46 @@
 
 All notable changes to Second Brain are documented here.
 
+## [1.1.0-dev] — 2026-06-11 (branch v1.1-dev)
+
+### Phase 0 — Foundation hardening
+- Next.js 14 → 15.5, React 19; npm audit 4 HIGH → 0
+- Generated Supabase types; all DB `as any` casts removed; latent bugs fixed
+  (test captures ordered by nonexistent column, retro NULL user_id insert)
+- Jest installed (unit tests had never run); 81 unit tests green
+- Token-bucket rate limits on /api/ingest, /api/tutor, /api/test
+- system_log table + cron observability in /api/health + Today red dot
+- Planning docs versioned under docs/planning/
+
+### Phase 1 — Memory core
+- ai_memory (main + tutor/test_gen/brief/retro scopes) + memory_log (004_memory.sql)
+- memoryManager: ordered read (main → scope → live context); AI distill REWRITES
+  main memory after every session/test/chat/capture
+- context-assembler v2 prepends permanent memory; /api/memory + /memory page
+
+### Phase 2 — MCP server
+- mcp-server/ stdio server, 9 tools: memory_read/write, quiz_generate,
+  quiz_history, textbook_list/pull, captures_search, confusion_map_get, session_log
+- .mcp.json registration; smoke test green
+
+### Phase 3 — Learning engine
+- Spaced repetition (1/3/7/21) + review_queue + Today review block + pre-sleep mode
+- Active-recall primer, error post-mortems, confidence calibration (2x weight),
+  topic interleaving, worked-example tutor mode, difficulty dial,
+  velocity trendline, AI week replan (user-approved), Pomodoro struggle notes,
+  captures search (005_learning.sql)
+
+### Phase 4 — Product gaps
+- PWA (manifest, service worker, /review mobile mode)
+- Groq Whisper audio transcription; Gemini multimodal image OCR
+- exam_dates registry + ExamCountdown rewire; retro trend chart
+
+### Phase 5 — UI/UX overhaul (ADR-014, "Apple-restrained depth")
+- Depth tokens --shadow-1/2/3 (warm ink-tinted), --blur-glass, spring timings
+- framer-motion: page transitions, nav pill morph, staggered entrances
+- Pomodoro ring gradient stroke + running glow; CaptureBar glass; login ambient
+  drift + elevated card; app-wide card depth; prefers-reduced-motion respected
+
 ## [1.0.0] — 2026-06-06
 
 ### P25 — Production Verification + Ship

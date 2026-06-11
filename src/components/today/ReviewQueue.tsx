@@ -53,6 +53,7 @@ export default function ReviewQueue() {
       style={{
         border: '1px solid var(--line)',
         borderRadius: 11,
+        boxShadow: 'var(--shadow-1)',
         padding: '14px 16px',
         background: 'var(--cream2)',
       }}

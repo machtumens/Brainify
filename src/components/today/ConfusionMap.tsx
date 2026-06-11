@@ -66,6 +66,7 @@ export default function ConfusionMap() {
       style={{
         border: '1px solid var(--line)',
         borderRadius: 11,
+        boxShadow: 'var(--shadow-1)',
         overflow: 'hidden',
       }}
     >
