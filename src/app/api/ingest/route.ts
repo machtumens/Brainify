@@ -21,6 +21,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { createServiceClient } from '@/lib/supabase';
 import { sanitize, autoTag, hasMistakeKeyword } from '@/lib/ingest/textProcessor';
+import { rateLimited } from '@/lib/rateLimit';
 import { processAudio } from '@/lib/ingest/audioProcessor';
 import { processImage } from '@/lib/ingest/imageProcessor';
 import type { CaptureRow } from '@/types/database';
@@ -177,6 +178,13 @@ async function handleMultipart(req: NextRequest): Promise<{
 
 export async function POST(req: NextRequest) {
   try {
+    if (rateLimited('ingest')) {
+      return NextResponse.json(
+        { success: false, data: null, error: 'Too many captures — wait a moment' },
+        { status: 429 }
+      );
+    }
+
     // 1. Auth
     const user = await getAuthUser();
     if (!user) {

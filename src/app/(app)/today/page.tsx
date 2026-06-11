@@ -14,13 +14,18 @@ import CalendarStrip from '@/components/today/CalendarStrip';
 import ExamCountdown from '@/components/today/ExamCountdown';
 import type { PrimerData } from '@/app/api/primer/route';
 
-function useSyncLastRun(): string {
+function useSyncLastRun(): { label: string; jobFailed: boolean } {
   const [label, setLabel] = useState('');
+  const [jobFailed, setJobFailed] = useState(false);
 
   useEffect(() => {
     fetch('/api/health')
       .then((r) => r.json())
       .then((json) => {
+        const jobs = json?.data?.jobs;
+        setJobFailed(
+          jobs?.sync?.status === 'error' || jobs?.retrospective?.status === 'error'
+        );
         const raw: string = json?.data?.sync_last_run ?? '';
         if (!raw || raw === 'never') {
           setLabel('never synced');
@@ -35,14 +40,14 @@ function useSyncLastRun(): string {
       .catch(() => { /* silent — sync status is non-critical */ });
   }, []);
 
-  return label;
+  return { label, jobFailed };
 }
 
 export default function TodayPage() {
   const [showPrimer, setShowPrimer] = useState(false);
   const [primerLoading, setPrimerLoading] = useState(false);
   const [primerData, setPrimerData] = useState<PrimerData | null>(null);
-  const syncLabel = useSyncLastRun();
+  const { label: syncLabel, jobFailed } = useSyncLastRun();
 
   const handlePomodoroStart = useCallback(async () => {
     // Show primer immediately with loading state — non-blocking
@@ -104,6 +109,20 @@ export default function TodayPage() {
             textAlign: 'right',
             margin: 0,
           }}>
+            {jobFailed && (
+              <span
+                title="A background job failed — check /api/health"
+                style={{
+                  display: 'inline-block',
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: 'var(--red)',
+                  marginRight: 6,
+                  verticalAlign: 'middle',
+                }}
+              />
+            )}
             {syncLabel}
           </p>
         )}

@@ -39,7 +39,8 @@ const VALID_CONTENT_TYPES: ContentType[] = [
 export function sanitize(raw: string): string {
   return raw
     .trim()
-    .replace(/<[^>]*>/g, '') // strip HTML tags
+    .replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, '') // drop script/style blocks incl. content
+    .replace(/<[^>]*>/g, '') // strip remaining HTML tags
     .slice(0, 5000);
 }
 

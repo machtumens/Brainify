@@ -30,6 +30,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { callAI } from '@/lib/ai-router';
 import type { RetrospectiveRow, Database } from '@/types/database';
+import { logJobRun } from '@/lib/systemLog';
 
 // ── CRON_SECRET auth ─────────────────────────────────────────────
 // Vercel sends: Authorization: Bearer <CRON_SECRET>
@@ -264,6 +265,8 @@ export async function POST(req: NextRequest) {
 
     if (insertErr) throw insertErr;
 
+    await logJobRun('retrospective', 'ok', `week starting ${period_start}`);
+
     return NextResponse.json(
       { success: true, data: retro as RetrospectiveRow, error: null },
       { status: 201 }
@@ -271,6 +274,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     // Cron fail: log, do not retry — next Sunday fires fresh
     const message = err instanceof Error ? err.message : 'Retrospective generation failed';
+    await logJobRun('retrospective', 'error', message);
     return NextResponse.json(
       { success: false, data: null, error: message },
       { status: 500 }

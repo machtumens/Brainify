@@ -20,6 +20,7 @@
 import { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { rateLimited } from '@/lib/rateLimit';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Groq from 'groq-sdk';
 import OpenAI from 'openai';
@@ -288,6 +289,13 @@ function parseQuestions(raw: string): Question[] {
 
 export async function POST(req: NextRequest) {
   try {
+    if (rateLimited('test')) {
+      return Response.json(
+        { success: false, data: null, error: 'Test generation rate limit — wait a minute' },
+        { status: 429 }
+      );
+    }
+
     const user = await getAuthUser();
     if (!user) {
       return Response.json(

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { lastJobRun } from '@/lib/systemLog';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Groq from 'groq-sdk';
 import OpenAI from 'openai';
@@ -87,12 +88,14 @@ async function checkSyncLastRun(): Promise<string | null> {
 }
 
 export async function GET() {
-  const [gemini, groq, openrouter, retroLastRun, syncLastRun] = await Promise.all([
+  const [gemini, groq, openrouter, retroLastRun, syncLastRun, syncJob, retroJob] = await Promise.all([
     checkGemini(),
     checkGroq(),
     checkOpenRouter(),
     checkRetroLastRun(),
     checkSyncLastRun(),
+    lastJobRun('sync'),
+    lastJobRun('retrospective'),
   ]);
 
   const anyAvailable = gemini || groq || openrouter;
@@ -106,6 +109,10 @@ export async function GET() {
         openrouter: openrouter ? 'ok' : 'unavailable',
         retro_cron: retroLastRun ?? 'never',
         sync_last_run: syncLastRun ?? 'never',
+        jobs: {
+          sync: syncJob ?? { status: 'never', detail: null, created_at: null },
+          retrospective: retroJob ?? { status: 'never', detail: null, created_at: null },
+        },
       },
       error: anyAvailable ? null : 'All AI providers unavailable',
     },

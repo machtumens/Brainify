@@ -53,6 +53,30 @@ export type Database = {
         }
         Relationships: []
       }
+      system_log: {
+        Row: {
+          created_at: string
+          detail: string | null
+          id: string
+          job: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          job: string
+          status: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          job?: string
+          status?: string
+        }
+        Relationships: []
+      }
       sync_log: {
         Row: {
           errors: string[]
