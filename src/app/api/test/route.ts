@@ -188,7 +188,7 @@ Generate exactly ${count} question${count !== 1 ? 's' : ''} now.`;
 async function callGemini(prompt: string): Promise<string> {
   if (!process.env.GEMINI_API_KEY) throw new Error('Gemini key missing');
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
   const result = await model.generateContent(prompt);
   return result.response.text();
 }
@@ -211,7 +211,7 @@ async function callOpenRouter(prompt: string): Promise<string> {
     apiKey: process.env.OPENROUTER_API_KEY,
   });
   const completion = await client.chat.completions.create({
-    model: 'mistralai/mistral-7b-instruct:free',
+    model: 'meta-llama/llama-3.3-70b-instruct:free',
     messages: [{ role: 'user', content: prompt }],
     stream: false,
   });

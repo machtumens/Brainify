@@ -49,7 +49,7 @@ async function callAI(prompt: string): Promise<string> {
       available: Boolean(process.env.GEMINI_API_KEY),
       run: async (p) => {
         const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -94,7 +94,7 @@ async function callAI(prompt: string): Promise<string> {
             Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
           },
           body: JSON.stringify({
-            model: 'mistralai/mistral-7b-instruct:free',
+            model: 'meta-llama/llama-3.3-70b-instruct:free',
             messages: [{ role: 'user', content: p }],
           }),
         });

@@ -25,7 +25,7 @@ const PROVIDERS_CONFIG = [
 
 async function callGemini(prompt) {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
   const result = await model.generateContent(prompt);
   return result.response.text();
 }
@@ -45,7 +45,7 @@ async function callOpenRouter(prompt) {
     apiKey: process.env.OPENROUTER_API_KEY,
   });
   const completion = await client.chat.completions.create({
-    model: 'mistralai/mistral-7b-instruct:free',
+    model: 'meta-llama/llama-3.3-70b-instruct:free',
     messages: [{ role: 'user', content: prompt }],
   });
   return completion.choices[0].message.content;

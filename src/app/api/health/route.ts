@@ -11,7 +11,7 @@ async function checkGemini(): Promise<boolean> {
   if (!process.env.GEMINI_API_KEY) return false;
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
     await model.generateContent('ping');
     return true;
   } catch {
@@ -42,7 +42,7 @@ async function checkOpenRouter(): Promise<boolean> {
       apiKey: process.env.OPENROUTER_API_KEY,
     });
     await client.chat.completions.create({
-      model: 'mistralai/mistral-7b-instruct:free',
+      model: 'meta-llama/llama-3.3-70b-instruct:free',
       messages: [{ role: 'user', content: 'ping' }],
       max_tokens: 1,
     });

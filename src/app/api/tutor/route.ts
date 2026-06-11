@@ -130,7 +130,7 @@ async function streamGemini(
 ): Promise<void> {
   if (!process.env.GEMINI_API_KEY) throw new Error('Gemini key missing');
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
   const result = await model.generateContentStream(prompt);
   for await (const chunk of result.stream) {
     const text = chunk.text();
@@ -175,7 +175,7 @@ async function streamOpenRouter(
     apiKey: process.env.OPENROUTER_API_KEY,
   });
   const stream = await client.chat.completions.create({
-    model: 'mistralai/mistral-7b-instruct:free',
+    model: 'meta-llama/llama-3.3-70b-instruct:free',
     messages: [{ role: 'user', content: prompt }],
     stream: true,
   });
