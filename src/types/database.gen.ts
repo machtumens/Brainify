@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      review_queue: {
+        Row: {
+          created_at: string
+          due_at: string
+          error_id: string | null
+          id: string
+          interval_idx: number
+          last_result: string | null
+          prompt_text: string
+          reviewed_at: string | null
+          topic: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          due_at: string
+          error_id?: string | null
+          id?: string
+          interval_idx?: number
+          last_result?: string | null
+          prompt_text: string
+          reviewed_at?: string | null
+          topic: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          due_at?: string
+          error_id?: string | null
+          id?: string
+          interval_idx?: number
+          last_result?: string | null
+          prompt_text?: string
+          reviewed_at?: string | null
+          topic?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      exam_dates: {
+        Row: {
+          created_at: string
+          exam_on: string
+          id: string
+          subject: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          exam_on: string
+          id?: string
+          subject?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          exam_on?: string
+          id?: string
+          subject?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_memory: {
         Row: {
           content: string
@@ -166,10 +232,12 @@ export type Database = {
       }
       errors: {
         Row: {
+          confidence: string | null
           created_at: string
           flagged_at: string
           id: string
           mistake_description: string | null
+          post_mortem: string | null
           problem_type: string | null
           session_id: string | null
           subtopic: string | null
@@ -177,10 +245,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          confidence?: string | null
           created_at?: string
           flagged_at?: string
           id?: string
           mistake_description?: string | null
+          post_mortem?: string | null
           problem_type?: string | null
           session_id?: string | null
           subtopic?: string | null
@@ -188,10 +258,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          confidence?: string | null
           created_at?: string
           flagged_at?: string
           id?: string
           mistake_description?: string | null
+          post_mortem?: string | null
           problem_type?: string | null
           session_id?: string | null
           subtopic?: string | null

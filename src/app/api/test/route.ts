@@ -160,7 +160,8 @@ CRITICAL RULES:
 3. Distribute difficulty: ${easyCount} easy, ${mediumCount} medium, ${hardCount} hard question${count !== 1 ? 's' : ''}.
 4. Weight questions toward DANGER ZONE topics (topics with most recorded mistakes): ${dangerTopics.length > 0 ? dangerTopics.join(', ') : 'none flagged — distribute evenly'}.
 5. Cover these selected topics: ${topics.join(', ')}.
-6. Output ONLY valid JSON — no markdown, no explanation, no preamble.
+6. INTERLEAVE topics: when more than one topic is selected, alternate topics between consecutive questions — never group all questions of one topic together (interleaved practice transfers better than blocked).
+7. Output ONLY valid JSON — no markdown, no explanation, no preamble.
 
 SOURCE MATERIALS:
 ${textbookSummary || '(no textbook chapters available for selected topics)'}

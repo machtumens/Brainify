@@ -12,6 +12,7 @@ import PrimerPanel from '@/components/today/PrimerPanel';
 import ConfusionMap from '@/components/today/ConfusionMap';
 import CalendarStrip from '@/components/today/CalendarStrip';
 import ExamCountdown from '@/components/today/ExamCountdown';
+import ReviewQueue from '@/components/today/ReviewQueue';
 import type { PrimerData } from '@/app/api/primer/route';
 
 function useSyncLastRun(): { label: string; jobFailed: boolean } {
@@ -84,6 +85,7 @@ export default function TodayPage() {
       {/* Left column — AI brief, task checklist, textbook bars, calendar */}
       <div style={{ minWidth: 320, display: 'flex', flexDirection: 'column', gap: 24 }}>
         <BriefPanel />
+        <ReviewQueue />
         <TaskList />
         <TextbookList />
         <CalendarStrip />

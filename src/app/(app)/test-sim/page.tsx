@@ -8,8 +8,10 @@ import DifficultySelector from '@/components/test-sim/DifficultySelector';
 import SourceHealthSidebar from '@/components/test-sim/SourceHealthSidebar';
 import TestRunner from '@/components/test-sim/TestRunner';
 import TestHistory from '@/components/test-sim/TestHistory';
-import { DEFAULT_DIFFICULTY, type DifficultyLevel } from '@/utils/difficultyDefaults';
+import PostMortemList from '@/components/test-sim/PostMortemList';
+import { DEFAULT_DIFFICULTY, suggestDifficulty, type DifficultyLevel } from '@/utils/difficultyDefaults';
 import type { Question, TestResultSummary } from '@/types/test';
+import { useEffect, useRef } from 'react';
 
 type PagePhase = 'setup' | 'generating' | 'active' | 'submitted';
 
@@ -37,6 +39,25 @@ export default function TestSimPage() {
   const [questions, setQuestions]       = useState<Question[]>([]);
   const [result, setResult]             = useState<TestResultSummary | null>(null);
   const [errorMsg, setErrorMsg]         = useState<string | null>(null);
+
+  // Difficulty dial (v1.1): >85% recent accuracy auto-bumps the default —
+  // only until the user touches the selector themselves.
+  const userTouchedDifficulty = useRef(false);
+  useEffect(() => {
+    fetch('/api/test-results')
+      .then((r) => r.json())
+      .then((json) => {
+        if (!json.success || userTouchedDifficulty.current) return;
+        const suggested = suggestDifficulty(json.data ?? []);
+        if (suggested !== DEFAULT_DIFFICULTY) setDifficulty(suggested);
+      })
+      .catch(() => { /* dial is a nicety — default stands */ });
+  }, []);
+
+  const handleDifficultyChange = useCallback((d: DifficultyLevel) => {
+    userTouchedDifficulty.current = true;
+    setDifficulty(d);
+  }, []);
 
   const handleToggle = useCallback((topic: string) => {
     setSelectedTopics((prev) =>
@@ -119,6 +140,9 @@ export default function TestSimPage() {
                 : 'No mistakes — clean run'}
             </p>
           </div>
+          {result.wrong_map && Object.keys(result.wrong_map).length > 0 && (
+            <PostMortemList questions={questions} wrongMap={result.wrong_map} />
+          )}
           <button
             onClick={handleReset}
             style={{
@@ -149,7 +173,7 @@ export default function TestSimPage() {
               <TopicGrid selectedTopics={selectedTopics} onToggle={handleToggle} />
             </div>
             <div style={CARD}>
-              <DifficultySelector value={difficulty} onChange={setDifficulty} />
+              <DifficultySelector value={difficulty} onChange={handleDifficultyChange} />
             </div>
 
             <button

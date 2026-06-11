@@ -29,6 +29,8 @@ export default function TestRunner({
   questions, topics, difficulty, durationSeconds = 1200, onComplete, onReset,
 }: Props) {
   const [selections, setSelections]     = useState<Record<string, number>>({});
+  // Calibration (v1.1): sure/unsure per answered question — confidently-wrong weighs 2x
+  const [confidence, setConfidence]     = useState<Record<string, 'sure' | 'unsure'>>({});
   const [phase, setPhase]               = useState<'active' | 'submitting'>('active');
   const [submitError, setSubmitError]   = useState<string | null>(null);
   const timer = useTestTimer(durationSeconds);
@@ -47,6 +49,7 @@ export default function TestRunner({
         body: JSON.stringify({
           questions,
           selections,
+          confidence,
           topics,
           difficulty,
           duration: timer.elapsed(),
@@ -59,7 +62,7 @@ export default function TestRunner({
       setSubmitError(err instanceof Error ? err.message : 'Submit failed — try again');
       setPhase('active'); // allow retry, preserve answers
     }
-  }, [phase, questions, selections, topics, difficulty, timer, onComplete]);
+  }, [phase, questions, selections, confidence, topics, difficulty, timer, onComplete]);
 
   // Auto-submit on timer expiry
   useEffect(() => {
@@ -107,14 +110,44 @@ export default function TestRunner({
       {/* Question cards */}
       <div aria-label="Test questions" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {questions.map((q, i) => (
-          <QuestionCard
-            key={q.id}
-            question={q}
-            index={i}
-            selectedOption={selections[q.id] ?? null}
-            onSelect={(qId, optIdx) => setSelections((prev) => ({ ...prev, [qId]: optIdx }))}
-            revealed={false}
-          />
+          <div key={q.id} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <QuestionCard
+              question={q}
+              index={i}
+              selectedOption={selections[q.id] ?? null}
+              onSelect={(qId, optIdx) => setSelections((prev) => ({ ...prev, [qId]: optIdx }))}
+              revealed={false}
+            />
+            {selections[q.id] !== undefined && (
+              <div
+                aria-label="Confidence rating"
+                style={{ display: 'flex', gap: 6, alignItems: 'center', paddingLeft: 16 }}
+              >
+                <span style={{
+                  fontSize: 11, fontStyle: 'italic', color: 'var(--ink4)',
+                  fontFamily: 'Newsreader, serif',
+                }}>
+                  confidence:
+                </span>
+                {(['sure', 'unsure'] as const).map((level) => (
+                  <button
+                    key={level}
+                    onClick={() => setConfidence((prev) => ({ ...prev, [q.id]: level }))}
+                    style={{
+                      fontFamily: 'Newsreader, serif', fontSize: 11, fontStyle: 'italic',
+                      padding: '2px 10px', borderRadius: 99, cursor: 'pointer',
+                      border: '1px solid var(--line2)',
+                      background: confidence[q.id] === level ? 'var(--cream3)' : 'transparent',
+                      color: confidence[q.id] === level ? 'var(--ink)' : 'var(--ink3)',
+                      transition: 'background var(--t-fast)',
+                    }}
+                  >
+                    {level}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         ))}
       </div>
 

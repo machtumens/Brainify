@@ -6,6 +6,8 @@
 import { useEffect, useState } from 'react';
 import type { GoalRow } from '@/types/database';
 import MacroGoalCard from '@/components/goals/MacroGoalCard';
+import VelocityChart from '@/components/goals/VelocityChart';
+import ReplanBanner from '@/components/goals/ReplanBanner';
 import RetroHistoryList from '@/components/shared/RetroHistoryList';
 
 function GoalSkeleton() {
@@ -87,6 +89,13 @@ export default function GoalsPage() {
         </div>
       )}
 
+      {/* ── Amber re-plan banners (v1.1) ── */}
+      {goals && goals.filter((g) => Boolean(g.roadmap?.amber_trigger)).map((g) => (
+        <div key={`replan-${g.id}`} style={{ marginBottom: 12 }}>
+          <ReplanBanner goal={g} onApplied={handleItemCheck} />
+        </div>
+      ))}
+
       {goals && (
         <div
           style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
@@ -97,6 +106,11 @@ export default function GoalsPage() {
           ))}
         </div>
       )}
+
+      {/* ── Velocity trendline (v1.1) ── */}
+      <div style={{ marginTop: 24 }}>
+        <VelocityChart />
+      </div>
 
       {/* ── Weekly retrospectives ── */}
       <h2

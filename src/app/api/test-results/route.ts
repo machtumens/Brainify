@@ -20,6 +20,7 @@ import { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { rewriteMainMemory } from '@/lib/memory/memoryManager';
+import { initialDue } from '@/lib/sr/scheduler';
 import type { Question, SubmitTestRequest } from '@/types/test';
 
 async function getAuthUser() {
@@ -90,11 +91,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = (await req.json()) as Partial<SubmitTestRequest>;
+    const body = (await req.json()) as Partial<SubmitTestRequest> & {
+      confidence?: Record<string, 'sure' | 'unsure'>;
+      post_mortems?: Record<string, string>;
+    };
 
     const questions: Question[] = Array.isArray(body.questions) ? body.questions : [];
     const selections: Record<string, number> =
       body.selections && typeof body.selections === 'object' ? body.selections : {};
+    const confidenceMap: Record<string, 'sure' | 'unsure'> =
+      body.confidence && typeof body.confidence === 'object' ? body.confidence : {};
+    const postMortems: Record<string, string> =
+      body.post_mortems && typeof body.post_mortems === 'object' ? body.post_mortems : {};
     const topics: string[] = Array.isArray(body.topics)
       ? body.topics.filter((t): t is string => typeof t === 'string')
       : [];
@@ -121,6 +129,7 @@ export async function POST(req: NextRequest) {
     // Create error rows synchronously — wrong_ids must reference real errors.id
     const LABELS = ['A', 'B', 'C', 'D'] as const;
     const wrongIds: string[] = [];
+    const wrongMap: Record<string, string> = {}; // question id -> error id (for post-mortems)
 
     for (const q of wrongQuestions) {
       const selectedIdx = selections[q.id];
@@ -136,11 +145,25 @@ export async function POST(req: NextRequest) {
           subtopic:            q.topic.slice(0, 200),
           problem_type:        'recall',
           mistake_description: `Test: chose ${selectedLabel}, correct ${correctLabel}. Q: ${q.text.slice(0, 200)}`,
+          confidence:          confidenceMap[q.id] ?? null,
+          post_mortem:         (postMortems[q.id] ?? '').slice(0, 500) || null,
         })
         .select('id')
         .single();
 
-      if (!errErr && errData?.id) wrongIds.push(errData.id);
+      if (!errErr && errData?.id) {
+        wrongIds.push(errData.id);
+        wrongMap[q.id] = errData.id;
+        // SR enqueue: each mistake becomes a review item due tomorrow
+        await db.from('review_queue').insert({
+          user_id:     user.id,
+          error_id:    errData.id,
+          topic:       q.topic.slice(0, 200),
+          prompt_text: q.text.slice(0, 500),
+          interval_idx: 0,
+          due_at:      initialDue().toISOString(),
+        });
+      }
     }
 
     // Insert test_results row
@@ -178,6 +201,7 @@ export async function POST(req: NextRequest) {
         duration:   trData.duration,
         topics:     trData.topics ?? [],
         wrong_ids:  trData.wrong_ids ?? [],
+        wrong_map:  wrongMap,
         created_at: trData.created_at,
       },
       error: null,
