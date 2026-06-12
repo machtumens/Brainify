@@ -28,7 +28,8 @@ test.describe('Pomodoro Ring', () => {
 
   test('progress circle strokeDasharray ≈ 339.292', async ({ page }) => {
     const progress = page.locator('svg circle').nth(1);
-    const da = await progress.getAttribute('strokeDasharray');
+    // React renders the camelCase prop as the real SVG attribute name
+    const da = await progress.getAttribute('stroke-dasharray');
     expect(parseFloat(da!)).toBeCloseTo(339.292, 1);
   });
 
@@ -86,6 +87,8 @@ test.describe('Pomodoro Ring', () => {
   });
 
   test('POSTs to /api/session when focus phase completes', async ({ page }) => {
+    // runFor drives 1500 real interval ticks through React — needs headroom.
+    test.setTimeout(120_000);
     let sessionPosted = false;
     let postedBody: Record<string, unknown> = {};
 
@@ -108,8 +111,10 @@ test.describe('Pomodoro Ring', () => {
     await page.goto('/today');
     await page.getByRole('button', { name: 'Start timer' }).click();
 
-    // Fast-forward 1501 seconds (25min + 1s buffer)
-    await page.clock.fastForward(1501 * 1000);
+    // Run the clock for 1501 seconds (25min + 1s buffer). runFor fires every
+    // due interval tick; fastForward fires each timer at most once, which
+    // would only decrement the countdown by a single second.
+    await page.clock.runFor(1501 * 1000);
     await page.waitForTimeout(300);
 
     expect(sessionPosted).toBe(true);

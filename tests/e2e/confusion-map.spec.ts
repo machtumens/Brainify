@@ -85,14 +85,18 @@ test.describe('Confusion Map', () => {
   });
 
   test('DANGER quadrant pill has red text color', async ({ page }) => {
-    const pill = page.locator('text=DANGER').locator('..').locator('span').first();
+    // Target the topic pill itself — `span.first()` under the quadrant
+    // matched the DANGER label (transparent bg), not the pill.
+    const pill = page.locator('text=DANGER').locator('..').getByText('pure maths');
+    await expect(pill).toBeVisible();
     const color = await pill.evaluate((el) => getComputedStyle(el).color);
     // --red = #C0392B = rgb(192, 57, 43)
     expect(color).toBe('rgb(192, 57, 43)');
   });
 
   test('DANGER pill background is #F5D9D7', async ({ page }) => {
-    const pill = page.locator('text=DANGER').locator('..').locator('span').first();
+    const pill = page.locator('text=DANGER').locator('..').getByText('pure maths');
+    await expect(pill).toBeVisible();
     const bg = await pill.evaluate((el) => getComputedStyle(el).backgroundColor);
     // #F5D9D7 = rgb(245, 217, 215)
     expect(bg).toBe('rgb(245, 217, 215)');

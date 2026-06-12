@@ -9,6 +9,8 @@ const PASSWORD = process.env.TEST_PASSWORD ?? '';
 
 test.describe('Ask AI — TutorChat', () => {
   test.beforeEach(async ({ page }) => {
+    // NOTE: this spec exercises the real /api/tutor pipeline (no route mocks),
+    // so it stays gated on real credentials even when E2E_AUTH_BYPASS is set.
     test.skip(!EMAIL || !PASSWORD, 'TEST_EMAIL and TEST_PASSWORD env vars required');
     await page.context().clearCookies();
     await page.goto(BASE_URL + '/login');
@@ -20,7 +22,8 @@ test.describe('Ask AI — TutorChat', () => {
   });
 
   test('ask-ai page loads with "Ask AI" heading', async ({ page }) => {
-    await expect(page.locator('h2:has-text("Ask AI")')).toBeVisible();
+    // ADR-015: view title promoted to display-size h1 (heading hierarchy fix)
+    await expect(page.locator('h1:has-text("Ask AI")')).toBeVisible();
   });
 
   test('context indicator shows non-zero counts after load', async ({ page }) => {

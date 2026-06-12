@@ -204,7 +204,9 @@ test.describe('Goal Hierarchy', () => {
           body: JSON.stringify({ success: true, data: MOCK_GOALS, error: null }),
         });
       }
-      return route.continue();
+      // fallback() defers to the beforeEach GET mock; continue() would hit
+      // the real network and the page would render no goals at all.
+      return route.fallback();
     });
 
     const mathsCard = page.locator('[data-testid="goal-card-goal-maths"]');
@@ -228,9 +230,13 @@ test.describe('Goal Hierarchy', () => {
     const weekBtn = mathsCard.locator('button[aria-expanded]').nth(2);
     await weekBtn.click();
 
-    const uncheckedItem = mathsCard.locator('[role="checkbox"][aria-checked="false"]').first();
-    await expect(uncheckedItem).toBeVisible();
-    await uncheckedItem.click();
-    await expect(uncheckedItem).toHaveAttribute('aria-checked', 'true');
+    // An [aria-checked="false"] locator self-invalidates the moment the click
+    // flips the attribute — pin the element by its label text instead.
+    const unchecked = mathsCard.locator('[role="checkbox"][aria-checked="false"]').first();
+    await expect(unchecked).toBeVisible();
+    const label = (await unchecked.textContent())!.trim();
+    const pinned = mathsCard.locator('[role="checkbox"]', { hasText: label });
+    await pinned.click();
+    await expect(pinned).toHaveAttribute('aria-checked', 'true');
   });
 });

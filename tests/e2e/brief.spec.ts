@@ -1,21 +1,24 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('AI Daily Brief', () => {
-  test.beforeEach(async ({ page }) => {
-    // Clear sessionStorage so brief always fetches fresh
-    await page.addInitScript(() => sessionStorage.removeItem('sb_brief'));
-  });
+  // NOTE: each test gets a fresh browser context (empty sessionStorage), so no
+  // init-script cleanup is needed. The previous addInitScript re-ran on every
+  // navigation and wiped the cache the cache-test was asserting on.
 
   test('skeleton appears before brief loads', async ({ page }) => {
-    // Intercept /api/brief to delay response
+    // Intercept /api/brief and hold the response until the skeleton has been
+    // asserted — a fixed delay raced page load and flaked.
+    let release!: () => void;
+    const gate = new Promise<void>((r) => { release = r; });
     await page.route('/api/brief', async (route) => {
-      await new Promise((r) => setTimeout(r, 500));
+      await gate;
       await route.fulfill({ json: { success: true, data: { brief: 'Test brief text.' }, error: null } });
     });
 
     await page.goto('/today');
-    // Skeleton must be visible before response arrives
+    // Skeleton must be visible while the response is held open
     await expect(page.getByLabel('Loading brief')).toBeVisible();
+    release();
   });
 
   test('brief text renders after load', async ({ page }) => {

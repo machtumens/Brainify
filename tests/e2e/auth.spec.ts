@@ -8,6 +8,15 @@ const EMAIL = process.env.TEST_EMAIL ?? '';
 const PASSWORD = process.env.TEST_PASSWORD ?? '';
 
 test.describe('Auth guard', () => {
+  // Redirect behavior is disabled while the suite runs with E2E_AUTH_BYPASS.
+  // These tests still run in CI/production-like environments without the flag.
+  test.beforeEach(() => {
+    test.skip(
+      process.env.E2E_AUTH_BYPASS === '1',
+      'auth redirects disabled under E2E auth bypass'
+    );
+  });
+
   test('unauthenticated visit to / redirects to /login', async ({ page }) => {
     // Clear cookies to ensure unauthenticated state
     await page.context().clearCookies();

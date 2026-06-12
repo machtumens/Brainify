@@ -101,10 +101,12 @@ test.describe('Calendar Strip', () => {
     expect(text).toContain('S');
   });
 
-  test('no box-shadow on calendar strip', async ({ page }) => {
+  test('calendar strip shadow is none or an ADR-014 token (warm ink tint)', async ({ page }) => {
     const strip = page.getByRole('list', { name: 'Calendar strip — current week' });
     const shadow = await strip.evaluate((el) => getComputedStyle(el).boxShadow);
-    expect(shadow).toBe('none');
+    // ADR-014: hardcoded shadows forbidden; var(--shadow-*) tokens resolve
+    // to layered rgba(26, 25, 23, …) values.
+    expect(shadow === 'none' || shadow.includes('rgba(26, 25, 23')).toBe(true);
   });
 });
 
@@ -183,10 +185,10 @@ test.describe('Exam Countdown', () => {
     await expect(card.getByText(/Daily load/)).toBeVisible();
   });
 
-  test('no box-shadow on countdown card', async ({ page }) => {
+  test('countdown card shadow is none or an ADR-014 token (warm ink tint)', async ({ page }) => {
     const card = page.locator('[aria-label="Exam countdown"]');
     const shadow = await card.evaluate((el) => getComputedStyle(el).boxShadow);
-    expect(shadow).toBe('none');
+    expect(shadow === 'none' || shadow.includes('rgba(26, 25, 23')).toBe(true);
   });
 
   test('shows "No exam date set" when goals return empty', async ({ page }) => {

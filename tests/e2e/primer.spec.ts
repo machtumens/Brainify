@@ -306,6 +306,8 @@ test.describe('Pre-session Primer', () => {
     const shadow = await primer.evaluate((el) =>
       window.getComputedStyle(el).boxShadow
     );
-    expect(shadow).toBe('none');
+    // ADR-014: shadows allowed via var(--shadow-*) tokens only — they resolve
+    // to layered rgba(26, 25, 23, …) values; anything else is a violation.
+    expect(shadow === 'none' || shadow.includes('rgba(26, 25, 23')).toBe(true);
   });
 });

@@ -35,8 +35,9 @@ const MOCK_GOALS = [
 
 test.describe('Task Checklist', () => {
   test.beforeEach(async ({ page }) => {
-    // Clear done state from prior runs
-    await page.addInitScript(() => sessionStorage.removeItem('sb_tasks_done'));
+    // NOTE: each test gets a fresh browser context, so sessionStorage starts
+    // empty — no init-script cleanup needed. (The previous addInitScript that
+    // removed sb_tasks_done re-ran on reload and broke the persistence test.)
 
     // Mock Supabase goals query
     await page.route('**/rest/v1/goals*', (route) =>
