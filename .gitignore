@@ -44,3 +44,7 @@ mcp-server/node_modules/
 test-results/
 playwright-report/
 
+# stray local logs
+inspect.log
+vercel-*.log
+
