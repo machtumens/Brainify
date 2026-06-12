@@ -10,33 +10,17 @@ import VelocityChart from '@/components/goals/VelocityChart';
 import ReplanBanner from '@/components/goals/ReplanBanner';
 import ExamDatesCard from '@/components/goals/ExamDatesCard';
 import RetroHistoryList from '@/components/shared/RetroHistoryList';
+import PageShell from '@/components/shared/primitives/PageShell';
+import Card from '@/components/shared/primitives/Card';
+import SectionLabel from '@/components/shared/primitives/SectionLabel';
+import Skeleton from '@/components/shared/primitives/Skeleton';
+import InlineMessage from '@/components/shared/primitives/InlineMessage';
 
 function GoalSkeleton() {
   return (
-    <div
-      style={{
-        border: '1px solid var(--line)',
-        borderRadius: 11,
-        boxShadow: 'var(--shadow-1)',
-        padding: '14px 16px',
-        background: 'var(--cream)',
-      }}
-    >
-      {[100, 60, 80].map((w, i) => (
-        <div
-          key={i}
-          style={{
-            height: 12,
-            width: `${w}%`,
-            borderRadius: 4,
-            marginBottom: i < 2 ? 10 : 0,
-            background: 'linear-gradient(90deg, var(--cream2) 25%, var(--cream3) 50%, var(--cream2) 75%)',
-            backgroundSize: '200% 100%',
-            animation: 'skeleton-sweep 1.5s ease-in-out infinite',
-          }}
-        />
-      ))}
-    </div>
+    <Card>
+      <Skeleton lines={3} />
+    </Card>
   );
 }
 
@@ -65,25 +49,8 @@ export default function GoalsPage() {
   }
 
   return (
-    <div style={{ padding: '20px 24px', maxWidth: 800 }}>
-      <h1
-        style={{
-          fontSize: 10,
-          fontWeight: 400,
-          textTransform: 'uppercase',
-          letterSpacing: '0.07em',
-          color: 'var(--ink4)',
-          marginBottom: 20,
-        }}
-      >
-        Goals
-      </h1>
-
-      {error && (
-        <p style={{ fontSize: 13, fontStyle: 'italic', color: 'var(--ink3)' }}>
-          {error}
-        </p>
-      )}
+    <PageShell title="Goals" width="content">
+      {error && <InlineMessage tone="muted">{error}</InlineMessage>}
 
       {!goals && !error && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -118,21 +85,14 @@ export default function GoalsPage() {
       <ExamDatesCard />
 
       {/* ── Weekly retrospectives ── */}
-      <h2
-        style={{
-          fontSize: 10,
-          fontWeight: 400,
-          textTransform: 'uppercase',
-          letterSpacing: '0.07em',
-          color: 'var(--ink4)',
-          marginTop: 40,
-          marginBottom: 12,
-        }}
+      <SectionLabel
+        as="h2"
         data-testid="retro-section-label"
+        style={{ marginTop: 'var(--sp-10)' }}
       >
         Weekly retrospectives
-      </h2>
+      </SectionLabel>
       <RetroHistoryList />
-    </div>
+    </PageShell>
   );
 }

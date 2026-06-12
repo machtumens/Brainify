@@ -9,29 +9,18 @@ import SourceHealthSidebar from '@/components/test-sim/SourceHealthSidebar';
 import TestRunner from '@/components/test-sim/TestRunner';
 import TestHistory from '@/components/test-sim/TestHistory';
 import PostMortemList from '@/components/test-sim/PostMortemList';
+import PageShell from '@/components/shared/primitives/PageShell';
+import Card from '@/components/shared/primitives/Card';
+import SectionLabel from '@/components/shared/primitives/SectionLabel';
+import StatNumber from '@/components/shared/primitives/StatNumber';
+import PillButton from '@/components/shared/primitives/PillButton';
+import Skeleton from '@/components/shared/primitives/Skeleton';
+import InlineMessage from '@/components/shared/primitives/InlineMessage';
 import { DEFAULT_DIFFICULTY, suggestDifficulty, type DifficultyLevel } from '@/utils/difficultyDefaults';
 import type { Question, TestResultSummary } from '@/types/test';
 import { useEffect, useRef } from 'react';
 
 type PagePhase = 'setup' | 'generating' | 'active' | 'submitted';
-
-const SECTION_LABEL: React.CSSProperties = {
-  margin: '0 0 12px',
-  fontSize: 10,
-  textTransform: 'uppercase',
-  letterSpacing: '0.07em',
-  color: 'var(--ink4)',
-  fontFamily: 'Newsreader, serif',
-  fontWeight: 400,
-};
-
-const CARD: React.CSSProperties = {
-  border: '1px solid var(--line)',
-  borderRadius: 11,
-  boxShadow: 'var(--shadow-1)',
-  background: 'var(--cream)',
-  padding: '14px 16px',
-};
 
 export default function TestSimPage() {
   const [phase, setPhase]               = useState<PagePhase>('setup');
@@ -103,14 +92,7 @@ export default function TestSimPage() {
   }, []);
 
   return (
-    <div style={{ padding: '20px 24px' }}>
-      <h2 style={{
-        fontSize: 14, fontWeight: 300, fontStyle: 'italic',
-        color: 'var(--ink)', fontFamily: 'Newsreader, serif', marginBottom: 24,
-      }}>
-        Test Simulator
-      </h2>
-
+    <PageShell title="Test Simulator" width="full">
       {/* ── ACTIVE: full-width TestRunner ── */}
       {phase === 'active' && (
         <TestRunner
@@ -125,106 +107,79 @@ export default function TestSimPage() {
       {/* ── SUBMITTED: score summary + history ── */}
       {phase === 'submitted' && result && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          <div style={CARD}>
+          <Card>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginBottom: 6 }}>
+              <StatNumber value={`${result.score} / ${result.total}`} label="correct" />
+            </div>
             <p style={{
-              margin: '0 0 6px', fontSize: 14, fontStyle: 'italic',
-              color: 'var(--ink)', fontFamily: 'Newsreader, serif',
-            }}>
-              {result.score} / {result.total} correct
-            </p>
-            <p style={{
-              margin: 0, fontSize: 12, fontStyle: 'italic',
-              color: 'var(--ink3)', fontFamily: 'Newsreader, serif',
+              margin: 0, fontSize: 'var(--fs-caption)', fontStyle: 'italic',
+              color: 'var(--text-secondary)', fontFamily: 'Newsreader, serif',
             }}>
               {result.wrong_ids.length > 0
                 ? `${result.wrong_ids.length} mistake${result.wrong_ids.length > 1 ? 's' : ''} logged to your error log — confusion map updated`
                 : 'No mistakes — clean run'}
             </p>
-          </div>
+          </Card>
           {result.wrong_map && Object.keys(result.wrong_map).length > 0 && (
             <PostMortemList questions={questions} wrongMap={result.wrong_map} />
           )}
-          <button
-            onClick={handleReset}
-            style={{
-              padding: '10px 24px', borderRadius: 99,
-              border: '1px solid var(--line2)', background: 'transparent',
-              color: 'var(--ink)', fontFamily: 'Newsreader, serif',
-              fontSize: 13, fontStyle: 'italic', cursor: 'pointer',
-              alignSelf: 'flex-start',
-            }}
-          >
+          <PillButton onClick={handleReset} style={{ alignSelf: 'flex-start' }}>
             New test
-          </button>
-          <div style={CARD}>
-            <p style={SECTION_LABEL}>Past tests</p>
+          </PillButton>
+          <Card>
+            <SectionLabel as="h2">Past tests</SectionLabel>
             <TestHistory />
-          </div>
+          </Card>
         </div>
       )}
 
-      {/* ── SETUP / GENERATING: two-column layout ── */}
+      {/* ── SETUP / GENERATING: responsive sidebar layout (ADR-015 §5) ── */}
       {(phase === 'setup' || phase === 'generating') && (
-        <div style={{
-          display: 'grid', gridTemplateColumns: '1fr 272px', gap: 24, alignItems: 'start',
-        }}>
+        <div className="layout-sidebar" style={{ padding: 0 }}>
           {/* Left column */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <div style={CARD}>
+          <div className="layout-sidebar__main">
+            <Card>
               <TopicGrid selectedTopics={selectedTopics} onToggle={handleToggle} />
-            </div>
-            <div style={CARD}>
+            </Card>
+            <Card>
               <DifficultySelector value={difficulty} onChange={handleDifficultyChange} />
-            </div>
+            </Card>
 
-            <button
+            <PillButton
+              variant="primary"
               onClick={handleGenerate}
               disabled={selectedTopics.length === 0 || phase === 'generating'}
               aria-label="Generate test questions"
-              style={{
-                width: '100%', padding: '12px 24px', borderRadius: 99, border: 'none',
-                background: selectedTopics.length === 0 ? 'var(--cream3)' : 'var(--ink)',
-                color: selectedTopics.length === 0 ? 'var(--ink4)' : 'white',
-                fontFamily: 'Newsreader, serif', fontSize: 14, fontStyle: 'italic',
-                cursor: selectedTopics.length === 0 || phase === 'generating' ? 'not-allowed' : 'pointer',
-                transition: 'background 80ms ease',
-              }}
+              style={{ width: '100%', padding: '12px 24px', fontSize: 'var(--fs-body)' }}
             >
               {phase === 'generating'
                 ? 'Generating…'
                 : selectedTopics.length === 0
                 ? 'Select topics to generate'
-                : 'Generate test'}
-            </button>
+                : `Generate test · ${selectedTopics.length} topic${selectedTopics.length > 1 ? 's' : ''}`}
+            </PillButton>
 
-            {errorMsg && (
-              <p style={{
-                margin: 0, fontSize: 13, fontStyle: 'italic',
-                color: 'var(--red)', fontFamily: 'Newsreader, serif',
-              }}>
-                {errorMsg}
-              </p>
-            )}
+            {errorMsg && <InlineMessage tone="error">{errorMsg}</InlineMessage>}
 
             {phase === 'generating' && (
               <div aria-label="Loading questions" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="skeleton" style={{ height: 120, borderRadius: 11 }} />
+                  <Skeleton key={i} height={120} style={{ borderRadius: 'var(--r-card)' }} />
                 ))}
               </div>
             )}
           </div>
 
           {/* Right sidebar */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="layout-sidebar__aside">
             <SourceHealthSidebar selectedTopics={selectedTopics} />
-            <div style={CARD}>
-              <p style={SECTION_LABEL}>Past tests</p>
+            <Card>
+              <SectionLabel as="h2">Past tests</SectionLabel>
               <TestHistory />
-            </div>
+            </Card>
           </div>
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }

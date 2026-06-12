@@ -43,4 +43,16 @@ export const cardVariants: Variants = {
 
 /** Hover/press for interactive cards & buttons. */
 export const liftHover = { y: -2, boxShadow: 'var(--shadow-2)' };
-export const pressScale = { scale: 0.98 };
+export const pressScale = { scale: 0.97 }; // ADR-015 motion policy
+
+/** Expand/collapse for accordion content (replaces max-height hacks). */
+export const expandVariants: Variants = {
+  collapsed: { height: 0, opacity: 0, transition: springGentle },
+  expanded: { height: 'auto', opacity: 1, transition: springGentle },
+};
+
+/** One-shot pop when a checkbox is ticked (task done, goal item). */
+export const checkPop = {
+  scale: [1, 1.18, 1],
+  transition: { duration: 0.25, ease: 'easeOut' as const },
+};

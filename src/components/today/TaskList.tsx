@@ -146,60 +146,7 @@ export default function TaskList() {
 
   return (
     <div>
-      <style>{`
-        .task-row {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 6px 8px;
-          min-height: 44px;
-          cursor: pointer;
-          border-radius: 6px;
-          transition: background 80ms ease;
-        }
-        .task-row:hover { background: var(--cream2); }
-        .task-checkbox {
-          flex-shrink: 0;
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          border: 1px solid var(--line2);
-          background: transparent;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 150ms ease;
-          outline: none;
-        }
-        .task-checkbox:focus-visible {
-          outline: 2px solid var(--ink2);
-          outline-offset: 2px;
-        }
-        .task-checkbox.done {
-          background: var(--ink);
-          border-color: var(--ink);
-        }
-        .task-label {
-          flex: 1;
-          font-size: 14px;
-          font-weight: 300;
-          color: var(--ink);
-          transition: color 150ms ease, text-decoration 150ms ease;
-        }
-        .task-label.done {
-          color: var(--ink4);
-          text-decoration: line-through;
-          text-decoration-color: var(--line2);
-        }
-        .task-subject {
-          font-size: 10px;
-          font-style: italic;
-          color: var(--ink4);
-          white-space: nowrap;
-          text-align: right;
-        }
-      `}</style>
-
+      {/* .task-* classes live in globals.css (ADR-015 §6) */}
       {status === 'loading' && (
         <p style={{ fontSize: 13, fontStyle: 'italic', color: 'var(--ink4)', margin: 0 }}>
           Loading tasks…

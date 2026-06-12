@@ -179,7 +179,7 @@ export default function RegisterForm({ onRegistered }: Props) {
         disabled={disabled}
         style={{
           background: disabled ? 'transparent' : 'var(--ink)',
-          color: disabled ? 'var(--ink4)' : 'white',
+          color: disabled ? 'var(--ink4)' : 'var(--text-inverse)',
           border: disabled ? '1px solid var(--line)' : 'none',
           borderRadius: 99,
           padding: '8px 20px',

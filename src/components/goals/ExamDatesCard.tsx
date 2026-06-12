@@ -51,8 +51,8 @@ export default function ExamDatesCard() {
 
   return (
     <section style={{
-      border: '1px solid var(--line)', borderRadius: 11, boxShadow: 'var(--shadow-1)',
-      background: 'var(--cream)', padding: '14px 16px', marginTop: 24,
+      border: '1px solid var(--border-default)', borderRadius: 'var(--r-card)', boxShadow: 'var(--shadow-1)',
+      background: 'var(--surface-page)', padding: '14px 16px', marginTop: 24,
     }}>
       <p style={{
         margin: '0 0 10px', fontSize: 10, textTransform: 'uppercase',

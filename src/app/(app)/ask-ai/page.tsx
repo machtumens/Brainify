@@ -22,25 +22,30 @@ export default function AskAIPage() {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        height: 'calc(100vh - 56px - 72px)', // viewport - nav - capture bar
-        padding: '20px 24px 0',
-        maxWidth: '720px',
+        // Fills the flex space between Nav and CaptureBar ((app)/layout.tsx);
+        // min-height 0 lets the chat log scroll internally instead of
+        // growing the page (replaces the old calc(100vh - 56px - 72px)).
+        flex: 1,
+        minHeight: 0,
+        padding: 'var(--sp-5) var(--sp-6) 0',
+        maxWidth: 'var(--w-chat-max)',
         margin: '0 auto',
         width: '100%',
       }}
     >
-      <h2
+      <h1
         style={{
-          fontSize: '13px',
-          fontWeight: 400,
-          color: 'var(--ink3)',
-          letterSpacing: '0.04em',
-          textTransform: 'uppercase',
-          marginBottom: '8px',
+          margin: '0 0 var(--sp-2)',
+          fontSize: 'var(--fs-display)',
+          fontWeight: 300,
+          fontStyle: 'italic',
+          color: 'var(--text-primary)',
+          fontFamily: 'Newsreader, serif',
+          lineHeight: 'var(--lh-tight)',
         }}
       >
         Ask AI
-      </h2>
+      </h1>
 
       <ContextIndicator counts={contextCounts} />
 

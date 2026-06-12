@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { usePomodoroTimer } from '@/hooks/usePomodoroTimer';
+import { springSnappy } from '@/lib/motion';
 import type { TimerMode } from '@/types/timer';
 
 // 2π × 54 = 339.292
@@ -18,6 +20,7 @@ interface PomodoroRingProps {
 }
 
 export default function PomodoroRing({ onStart }: PomodoroRingProps) {
+  const reduce = useReducedMotion();
   const {
     phase,
     timeRemaining,
@@ -53,8 +56,8 @@ export default function PomodoroRing({ onStart }: PomodoroRingProps) {
 
   return (
     <div style={{
-      border: '1px solid var(--line)',
-      borderRadius: 11,
+      border: '1px solid var(--border-default)',
+      borderRadius: 'var(--r-card)',
       boxShadow: 'var(--shadow-1)',
       padding: '14px 16px',
       display: 'flex',
@@ -198,27 +201,56 @@ export default function PomodoroRing({ onStart }: PomodoroRingProps) {
         </div>
       )}
 
-      {/* Mode toggle — visible only when paused/stopped */}
+      {/* Mode toggle — segmented control with shared sliding pill (ADR-015;
+          same layoutId pattern as Nav). Visible only when paused/stopped. */}
       {!isRunning && (
-        <div style={{ display: 'flex', gap: 2 }}>
+        <div
+          role="group"
+          aria-label="Timer mode"
+          style={{
+            display: 'flex',
+            gap: 2,
+            padding: 2,
+            borderRadius: 'var(--r-pill)',
+            border: '1px solid var(--border-default)',
+            background: 'var(--surface-hover)',
+          }}
+        >
           {MODES.map(m => (
             <button
               key={m}
               onClick={() => setMode(m)}
               aria-pressed={mode === m}
               style={{
-                fontSize: 10,
+                position: 'relative',
+                fontSize: 'var(--fs-micro)',
                 fontStyle: 'italic',
                 fontFamily: 'Newsreader, serif',
-                color: mode === m ? 'var(--ink)' : 'var(--ink4)',
+                color: mode === m ? 'var(--text-primary)' : 'var(--text-faint)',
                 background: 'transparent',
                 border: 'none',
                 cursor: 'pointer',
-                padding: '2px 8px',
-                borderRadius: 99,
+                padding: '3px 10px',
+                borderRadius: 'var(--r-pill)',
+                transition: 'color var(--t-fast)',
               }}
             >
-              {m}
+              {mode === m && (
+                <motion.span
+                  layoutId="pomodoro-mode-pill"
+                  transition={reduce ? { duration: 0 } : springSnappy}
+                  aria-hidden="true"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: 'var(--r-pill)',
+                    background: 'var(--surface-page)',
+                    border: '1px solid var(--border-strong)',
+                    boxShadow: 'var(--shadow-1)',
+                  }}
+                />
+              )}
+              <span style={{ position: 'relative' }}>{m}</span>
             </button>
           ))}
         </div>

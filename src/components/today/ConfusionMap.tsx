@@ -64,8 +64,8 @@ export default function ConfusionMap() {
       role="region"
       aria-label="Confusion Map"
       style={{
-        border: '1px solid var(--line)',
-        borderRadius: 11,
+        border: '1px solid var(--border-default)',
+        borderRadius: 'var(--r-card)',
         boxShadow: 'var(--shadow-1)',
         overflow: 'hidden',
       }}

@@ -15,24 +15,11 @@ import { useEffect, useState } from 'react';
 import BookList from '@/components/textbooks/BookList';
 import RegisterForm from '@/components/textbooks/RegisterForm';
 import SourceWeb from '@/components/textbooks/SourceWeb';
+import PageShell from '@/components/shared/primitives/PageShell';
+import Card from '@/components/shared/primitives/Card';
+import SectionLabel from '@/components/shared/primitives/SectionLabel';
+import InlineMessage from '@/components/shared/primitives/InlineMessage';
 import type { TextbookRow, SourceRow } from '@/types/database';
-
-const SECTION_LABEL: React.CSSProperties = {
-  fontSize: 10,
-  textTransform: 'uppercase',
-  letterSpacing: '0.07em',
-  color: 'var(--ink4)',
-  margin: '0 0 12px 0',
-};
-
-const CARD: React.CSSProperties = {
-  background: 'var(--cream)',
-  border: '1px solid var(--line)',
-  borderRadius: 11,
-  boxShadow: 'var(--shadow-1)',
-  padding: '14px 16px',
-  marginBottom: 32,
-};
 
 export default function TextbooksPage() {
   const [books, setBooks]     = useState<TextbookRow[]>([]);
@@ -70,20 +57,20 @@ export default function TextbooksPage() {
   }
 
   return (
-    <div style={{ padding: '20px 24px', maxWidth: 720 }}>
+    <PageShell title="Textbooks" width="content" style={{ maxWidth: 720 }}>
 
       {/* ── Textbooks list ── */}
-      <p style={SECTION_LABEL}>textbooks</p>
+      <SectionLabel as="h2">textbooks</SectionLabel>
 
       {status === 'loading' && (
-        <p style={{ fontSize: 13, fontStyle: 'italic', color: 'var(--ink4)', marginBottom: 32 }}>
+        <InlineMessage tone="muted" style={{ marginBottom: 32 }}>
           Loading…
-        </p>
+        </InlineMessage>
       )}
       {status === 'error' && (
-        <p style={{ fontSize: 12, fontStyle: 'italic', color: 'var(--red)', marginBottom: 32 }}>
+        <InlineMessage tone="error" style={{ marginBottom: 32 }}>
           Could not load textbooks.
-        </p>
+        </InlineMessage>
       )}
       {status === 'loaded' && (
         <div style={{ marginBottom: 32 }}>
@@ -92,20 +79,20 @@ export default function TextbooksPage() {
       )}
 
       {/* ── Register form ── */}
-      <p style={SECTION_LABEL}>register a book</p>
-      <div style={CARD}>
+      <SectionLabel as="h2">register a book</SectionLabel>
+      <Card style={{ marginBottom: 32 }}>
         <RegisterForm onRegistered={handleRegistered} />
-      </div>
+      </Card>
 
       {/* ── Source web ── */}
       {status === 'loaded' && (
         <>
-          <p style={SECTION_LABEL}>source web</p>
-          <div style={CARD}>
+          <SectionLabel as="h2">source web</SectionLabel>
+          <Card style={{ marginBottom: 32 }}>
             <SourceWeb sources={sources} books={books} />
-          </div>
+          </Card>
         </>
       )}
-    </div>
+    </PageShell>
   );
 }

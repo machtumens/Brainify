@@ -21,11 +21,11 @@ const SCROLL_CONTAINER: React.CSSProperties = {
 };
 
 const ROW: React.CSSProperties = {
-  border: '1px solid var(--line)',
-  borderRadius: 11,
+  border: '1px solid var(--border-default)',
+  borderRadius: 'var(--r-card)',
   boxShadow: 'var(--shadow-1)',
   padding: '12px 14px',
-  background: 'var(--cream)',
+  background: 'var(--surface-page)',
 };
 
 const DATE_LABEL: React.CSSProperties = {

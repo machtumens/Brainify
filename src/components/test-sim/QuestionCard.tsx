@@ -23,10 +23,10 @@ export default function QuestionCard({
     <article
       aria-label={`Question ${index + 1}`}
       style={{
-        border: '1px solid var(--line)',
-        borderRadius: 11,
+        border: '1px solid var(--border-default)',
+        borderRadius: 'var(--r-card)',
         boxShadow: 'var(--shadow-1)',
-        background: 'var(--cream)',
+        background: 'var(--surface-page)',
         padding: '16px 18px',
         display: 'flex',
         flexDirection: 'column',

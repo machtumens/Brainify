@@ -67,7 +67,7 @@ export default function VelocityChart() {
   }, []);
 
   if (status === 'loading') {
-    return <div className="skeleton" style={{ height: H, borderRadius: 11 }} />;
+    return <div className="skeleton" style={{ height: H, borderRadius: 'var(--r-card)' }} />;
   }
   if (status === 'error' || points.length === 0) return null;
 
@@ -80,8 +80,8 @@ export default function VelocityChart() {
     <section
       aria-label="Weekly velocity"
       style={{
-        border: '1px solid var(--line)', borderRadius: 11, boxShadow: 'var(--shadow-1)',
-        background: 'var(--cream)', padding: '14px 16px',
+        border: '1px solid var(--border-default)', borderRadius: 'var(--r-card)', boxShadow: 'var(--shadow-1)',
+        background: 'var(--surface-page)', padding: '14px 16px',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>

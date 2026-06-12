@@ -89,11 +89,11 @@ export default function ExamCountdown() {
   }, []);
 
   const cardStyle: React.CSSProperties = {
-    border: '1px solid var(--line)',
-    borderRadius: 11,
+    border: '1px solid var(--border-default)',
+    borderRadius: 'var(--r-card)',
     boxShadow: 'var(--shadow-1)',
     padding: '14px 16px',
-    background: 'var(--cream)',
+    background: 'var(--surface-page)',
   };
 
   if (noExamDate) {

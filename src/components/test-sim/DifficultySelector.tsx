@@ -46,7 +46,7 @@ export default function DifficultySelector({ value, onChange }: Props) {
                 borderRadius: 99,
                 border: selected ? 'none' : '1px solid var(--line2)',
                 background: selected ? 'var(--ink)' : 'transparent',
-                color: selected ? 'white' : 'var(--ink2)',
+                color: selected ? 'var(--text-inverse)' : 'var(--ink2)',
                 fontFamily: 'Newsreader, serif',
                 fontSize: 13,
                 fontStyle: 'italic',

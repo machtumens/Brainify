@@ -77,7 +77,7 @@ export default function TestRunner({
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }} aria-label="Active test">
       {/* Timer bar */}
       <div style={{
-        border: '1px solid var(--line)', borderRadius: 11, boxShadow: 'var(--shadow-1)', background: 'var(--cream)',
+        border: '1px solid var(--border-default)', borderRadius: 'var(--r-card)', boxShadow: 'var(--shadow-1)', background: 'var(--surface-page)',
         padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 16,
       }}>
         <span
@@ -159,7 +159,7 @@ export default function TestRunner({
           style={{
             padding: '10px 24px', borderRadius: 99, border: 'none',
             background: answered === 0 ? 'var(--cream3)' : 'var(--ink)',
-            color: answered === 0 ? 'var(--ink4)' : 'white',
+            color: answered === 0 ? 'var(--ink4)' : 'var(--text-inverse)',
             fontFamily: 'Newsreader, serif', fontSize: 13, fontStyle: 'italic',
             cursor: phase === 'submitting' || answered === 0 ? 'not-allowed' : 'pointer',
           }}

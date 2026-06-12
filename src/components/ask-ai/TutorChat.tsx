@@ -1,8 +1,10 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import type { Message } from '@/hooks/useChat';
 import { IconArrowRight } from '@tabler/icons-react';
+import { springGentle } from '@/lib/motion';
 
 interface Props {
   messages: Message[];
@@ -19,7 +21,10 @@ function MessageBubble({ message, isStreaming }: { message: Message; isStreaming
   const isEmpty = !message.content && !isUser;
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={springGentle}
       style={{
         display: 'flex',
         justifyContent: isUser ? 'flex-end' : 'flex-start',
@@ -42,23 +47,16 @@ function MessageBubble({ message, isStreaming }: { message: Message; isStreaming
         }}
       >
         {isEmpty && isStreaming ? (
-          // "thinking..." skeleton while first token loading
-          <span
-            style={{
-              display: 'inline-block',
-              color: 'var(--ink4)',
-              fontStyle: 'italic',
-              fontSize: '13px',
-            }}
-            aria-label="Thinking"
-          >
-            thinking...
+          // animated three-dot pulse while first token loads
+          // (.thinking-dots in globals.css; collapses under reduced motion)
+          <span aria-label="Thinking" className="thinking-dots">
+            <span /><span /><span />
           </span>
         ) : (
           message.content
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 

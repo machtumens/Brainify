@@ -51,11 +51,11 @@ export default function ReviewQueue() {
   return (
     <section
       style={{
-        border: '1px solid var(--line)',
-        borderRadius: 11,
+        border: '1px solid var(--border-default)',
+        borderRadius: 'var(--r-card)',
         boxShadow: 'var(--shadow-1)',
         padding: '14px 16px',
-        background: 'var(--cream2)',
+        background: 'var(--surface-hover)',
       }}
     >
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>

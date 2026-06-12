@@ -6,7 +6,13 @@
 // Expand state session-only per ui-ux-principles §6.4.
 
 import { useState, useEffect, useMemo } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { IconChevronDown } from '@tabler/icons-react';
 import type { GoalRow, MonthEntry } from '@/types/database';
+import { expandVariants, springSnappy } from '@/lib/motion';
+import Skeleton from '@/components/shared/primitives/Skeleton';
+import StatNumber from '@/components/shared/primitives/StatNumber';
+import Pill from '@/components/shared/primitives/Pill';
 import MonthRow from './MonthRow';
 
 interface Props {
@@ -50,23 +56,6 @@ const STATUS_COLOR: Record<string, string> = {
   done: 'var(--ink4)',
   locked: 'var(--ink4)',
 };
-
-function SkeletonLine({ width }: { width: number | string }) {
-  return (
-    <span
-      style={{
-        display: 'inline-block',
-        width,
-        height: 12,
-        borderRadius: 4,
-        background: 'linear-gradient(90deg, var(--cream2) 25%, var(--cream3) 50%, var(--cream2) 75%)',
-        backgroundSize: '200% 100%',
-        animation: 'skeleton-sweep 1.5s ease-in-out infinite',
-        verticalAlign: 'middle',
-      }}
-    />
-  );
-}
 
 export default function MacroGoalCard({ goal, onItemCheck }: Props) {
   const [expanded, setExpanded] = useState(false);
@@ -114,13 +103,13 @@ export default function MacroGoalCard({ goal, onItemCheck }: Props) {
   return (
     <div
       style={{
-        border: '1px solid var(--line)',
-        borderRadius: 11,
+        border: '1px solid var(--border-default)',
+        borderRadius: 'var(--r-card)',
         boxShadow: 'var(--shadow-1)',
         padding: '14px 16px',
-        background: 'var(--cream)',
+        background: 'var(--surface-page)',
         opacity: isLocked ? 0.5 : 1,
-        transition: 'background 80ms ease',
+        transition: 'background var(--t-fast)',
       }}
       data-testid={`goal-card-${goal.id}`}
     >
@@ -140,34 +129,22 @@ export default function MacroGoalCard({ goal, onItemCheck }: Props) {
               {goal.title}
             </h3>
             {isLocked && (
-              <span
-                style={{
-                  fontSize: 10,
-                  fontStyle: 'italic',
-                  color: 'var(--ink4)',
-                  background: 'var(--cream3)',
-                  borderRadius: 99,
-                  padding: '2px 8px',
-                }}
+              <Pill
+                tone="neutral"
                 data-testid="lock-indicator"
+                style={{ fontSize: 'var(--fs-micro)', padding: '2px 8px', color: 'var(--text-faint)' }}
               >
                 locked
-              </span>
+              </Pill>
             )}
             {isAmber && !isLocked && (
-              <span
+              <Pill
+                tone="warn"
                 data-testid="amber-badge"
-                style={{
-                  fontSize: 10,
-                  fontStyle: 'italic',
-                  color: 'var(--amber)',
-                  background: 'var(--amber-pill)',
-                  borderRadius: 99,
-                  padding: '2px 8px',
-                }}
+                style={{ fontSize: 'var(--fs-micro)', padding: '2px 8px' }}
               >
                 attention needed
-              </span>
+              </Pill>
             )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -197,30 +174,31 @@ export default function MacroGoalCard({ goal, onItemCheck }: Props) {
         </div>
 
         {/* Expand chevron — disabled for locked goals */}
-        <button
+        <motion.button
           type="button"
           aria-expanded={expanded}
           aria-controls={`goal-content-${goal.id}`}
           onClick={() => { if (!isLocked) setExpanded((e) => !e); }}
           disabled={isLocked}
+          animate={{ rotate: expanded ? 180 : 0 }}
+          transition={springSnappy}
           style={{
             background: 'none',
             border: 'none',
             cursor: isLocked ? 'not-allowed' : 'pointer',
             padding: 4,
-            fontSize: 12,
-            color: 'var(--ink3)',
-            display: 'inline-block',
-            transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 200ms ease-in-out',
+            color: 'var(--text-tertiary)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             lineHeight: 1,
             minWidth: 24,
             minHeight: 24,
           }}
           aria-label={expanded ? 'Collapse goal' : 'Expand goal'}
         >
-          ↓
-        </button>
+          <IconChevronDown size={14} stroke={1.5} aria-hidden="true" />
+        </motion.button>
       </div>
 
       {/* Stat row — sessions / topics / % */}
@@ -233,82 +211,30 @@ export default function MacroGoalCard({ goal, onItemCheck }: Props) {
           borderBottom: '1px solid var(--line)',
         }}
       >
-        <div>
-          <div
-            style={{
-              fontSize: 22,
-              fontWeight: 300,
-              color: 'var(--ink)',
-              letterSpacing: '-0.5px',
-              lineHeight: 1,
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {stats.sessionsCompleted}
-          </div>
-          <div style={{ fontSize: 10, color: 'var(--ink4)', marginTop: 2 }}>weeks done</div>
-        </div>
-        <div>
-          <div
-            style={{
-              fontSize: 22,
-              fontWeight: 300,
-              color: 'var(--ink)',
-              letterSpacing: '-0.5px',
-              lineHeight: 1,
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {stats.topicsCovered}
-          </div>
-          <div style={{ fontSize: 10, color: 'var(--ink4)', marginTop: 2 }}>topics covered</div>
-        </div>
-        <div>
-          <div
-            style={{
-              fontSize: 22,
-              fontWeight: 300,
-              color: isAmber ? 'var(--amber)' : 'var(--ink)',
-              letterSpacing: '-0.5px',
-              lineHeight: 1,
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {stats.pctToMilestone}%
-          </div>
-          <div style={{ fontSize: 10, color: 'var(--ink4)', marginTop: 2 }}>to milestone</div>
-        </div>
+        <StatNumber value={stats.sessionsCompleted} label="weeks done" />
+        <StatNumber value={stats.topicsCovered} label="topics covered" />
+        <StatNumber
+          value={`${stats.pctToMilestone}%`}
+          label="to milestone"
+          tone={isAmber ? 'warn' : 'default'}
+        />
         {goal.roadmap?.total_hours && (
-          <div>
-            <div
-              style={{
-                fontSize: 22,
-                fontWeight: 300,
-                color: 'var(--ink)',
-                letterSpacing: '-0.5px',
-                lineHeight: 1,
-                fontVariantNumeric: 'tabular-nums',
-              }}
-            >
-              {goal.roadmap.total_hours}
-            </div>
-            <div style={{ fontSize: 10, color: 'var(--ink4)', marginTop: 2 }}>total hrs</div>
-          </div>
+          <StatNumber value={goal.roadmap.total_hours} label="total hrs" />
         )}
       </div>
 
-      {/* AI insight blurb */}
-      <div style={{ marginBottom: 12 }}>
+      {/* AI insight blurb — height reserved so resolve doesn't shift layout */}
+      <div style={{ marginBottom: 12, minHeight: 18 }}>
         {insightLoading ? (
-          <SkeletonLine width="80%" />
+          <Skeleton width="80%" height={12} />
         ) : insight ? (
           <p
             style={{
-              fontSize: 13,
+              fontSize: 'var(--fs-body-s)',
               fontStyle: 'italic',
-              color: 'var(--ink3)',
+              color: 'var(--text-tertiary)',
               margin: 0,
-              lineHeight: 1.5,
+              lineHeight: 'var(--lh-body)',
             }}
           >
             {insight}
@@ -316,18 +242,23 @@ export default function MacroGoalCard({ goal, onItemCheck }: Props) {
         ) : null}
       </div>
 
-      {/* Expandable month rows */}
-      <div
-        id={`goal-content-${goal.id}`}
-        style={{
-          overflow: 'hidden',
-          maxHeight: expanded ? 8000 : 0,
-          transition: 'max-height 200ms ease-in-out',
-        }}
-      >
-        {months.map((month, mi) => (
-          <MonthRow key={month.month} month={month} monthIndex={mi} onItemCheck={onItemCheck} />
-        ))}
+      {/* Expandable month rows — spring height (ADR-015; replaces maxHeight hack) */}
+      <div id={`goal-content-${goal.id}`}>
+        <AnimatePresence initial={false}>
+          {expanded && (
+            <motion.div
+              variants={expandVariants}
+              initial="collapsed"
+              animate="expanded"
+              exit="collapsed"
+              style={{ overflow: 'hidden' }}
+            >
+              {months.map((month, mi) => (
+                <MonthRow key={month.month} month={month} monthIndex={mi} onItemCheck={onItemCheck} />
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

@@ -116,7 +116,7 @@ export default function LoginPage() {
             style={{
               marginTop: 4,
               background: loading ? 'transparent' : 'var(--ink)',
-              color: loading ? 'var(--ink4)' : 'white',
+              color: loading ? 'var(--ink4)' : 'var(--text-inverse)',
               border: loading ? '1px solid var(--line)' : 'none',
               borderRadius: 99,
               padding: '8px 24px',

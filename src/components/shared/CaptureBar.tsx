@@ -1,7 +1,9 @@
 'use client';
 
-import { IconMicrophone, IconCamera, IconArrowRight } from '@tabler/icons-react';
+import { motion } from 'framer-motion';
+import { IconMicrophone, IconCamera, IconArrowRight, IconCheck } from '@tabler/icons-react';
 import { useCapture } from '@/hooks/useCapture';
+import { springSnappy } from '@/lib/motion';
 
 export default function CaptureBar() {
   const {
@@ -20,6 +22,7 @@ export default function CaptureBar() {
       style={{
         position: 'sticky',
         bottom: 0,
+        zIndex: 'var(--z-capture)' as unknown as number,
         width: '100%',
         padding: '12px 24px 16px',
         // ADR-014: glass surface — content scrolls beneath the capture bar
@@ -97,7 +100,19 @@ export default function CaptureBar() {
           fontStyle: 'italic',
           color: 'var(--ink3)',
           animation: 'captureConfirm 150ms ease-out',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
         }}>
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={springSnappy}
+            style={{ display: 'inline-flex' }}
+            aria-hidden="true"
+          >
+            <IconCheck size={12} stroke={1.5} />
+          </motion.span>
           Captured
         </p>
       )}

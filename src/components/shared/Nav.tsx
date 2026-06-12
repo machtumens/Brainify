@@ -34,8 +34,11 @@ export default function Nav() {
         alignItems: 'center',
         gap: 4,
         padding: '12px 24px',
-        borderBottom: '1px solid var(--line)',
-        background: 'var(--cream)',
+        borderBottom: '1px solid var(--border-default)',
+        background: 'var(--surface-page)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 'var(--z-nav)' as unknown as number,
       }}
       aria-label="Main navigation"
     >

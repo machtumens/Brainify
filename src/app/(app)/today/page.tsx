@@ -1,9 +1,10 @@
 'use client';
-// Today View — two-column grid shell (P05).
-// Left: fluid (1fr, min 320px). Right: 272px fixed.
-// Content components added in P06–P11.
-// P23: sync_last_run display added (--ink4 italic, bottom of right column).
+// Today View — responsive sidebar layout (ADR-015 §5).
+// Desktop/iPad landscape: fluid main + 272px aside.
+// ≤1024px (iPad portrait): single column, aside reflows to a 2-up band.
+// P23: sync_last_run display added (bottom of right column).
 import { useState, useCallback, useEffect } from 'react';
+import PageShell from '@/components/shared/primitives/PageShell';
 import BriefPanel from '@/components/today/BriefPanel';
 import TaskList from '@/components/today/TaskList';
 import TextbookList from '@/components/today/TextbookList';
@@ -75,66 +76,59 @@ export default function TodayPage() {
   }, []);
 
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: '1fr 272px',
-      gap: 24,
-      padding: '20px 24px',
-      minHeight: '100%',
-    }}>
-      {/* Left column — AI brief, task checklist, textbook bars, calendar */}
-      <div style={{ minWidth: 320, display: 'flex', flexDirection: 'column', gap: 24 }}>
-        <BriefPanel />
-        <ReviewQueue />
-        <TaskList />
-        <TextbookList />
-        <CalendarStrip />
-      </div>
-
-      {/* Right panel — 272px fixed: Pomodoro, Primer, Confusion map, Countdown */}
-      <div style={{ width: 272, display: 'flex', flexDirection: 'column', gap: 24 }}>
-        <PomodoroRing onStart={handlePomodoroStart} />
-        {showPrimer && (
-          <PrimerPanel
-            data={primerData}
-            loading={primerLoading}
-            onDismiss={() => setShowPrimer(false)}
-          />
-        )}
-        <ConfusionMap />
-        <ExamCountdown />
-        {syncLabel && (
-          <p style={{
-            fontSize: 12,
-            fontStyle: 'italic',
-            color: 'var(--ink4)',
-            textAlign: 'right',
-            margin: 0,
-          }}>
-            <a
-              href="/memory"
-              style={{ color: 'var(--ink4)', textDecoration: 'underline', marginRight: 8 }}
-            >
-              memory
-            </a>
-            {jobFailed && (
-              <span
-                title="A background job failed — check /api/health"
-                style={{
-                  display: 'inline-block',
-                  width: 6,
-                  height: 6,
-                  borderRadius: '50%',
-                  background: 'var(--red)',
-                  marginRight: 6,
-                  verticalAlign: 'middle',
-                }}
-              />
-            )}
-            {syncLabel}
-          </p>
-        )}
-      </div>
-    </div>
+    <PageShell
+      title="Today"
+      width="sidebar"
+      aside={
+        <>
+          <PomodoroRing onStart={handlePomodoroStart} />
+          {showPrimer && (
+            <PrimerPanel
+              data={primerData}
+              loading={primerLoading}
+              onDismiss={() => setShowPrimer(false)}
+            />
+          )}
+          <ConfusionMap />
+          <ExamCountdown />
+          {syncLabel && (
+            <p style={{
+              fontSize: 'var(--fs-caption)',
+              fontStyle: 'italic',
+              color: 'var(--text-faint)',
+              textAlign: 'right',
+              margin: 0,
+            }}>
+              <a
+                href="/memory"
+                style={{ color: 'var(--text-faint)', textDecoration: 'underline', marginRight: 8 }}
+              >
+                memory
+              </a>
+              {jobFailed && (
+                <span
+                  title="A background job failed — check /api/health"
+                  style={{
+                    fontStyle: 'italic',
+                    color: 'var(--text-secondary)',
+                    marginRight: 6,
+                  }}
+                >
+                  job failed ·
+                </span>
+              )}
+              {syncLabel}
+            </p>
+          )}
+        </>
+      }
+    >
+      {/* Main column — AI brief, review queue, task checklist, textbook bars, calendar */}
+      <BriefPanel />
+      <ReviewQueue />
+      <TaskList />
+      <TextbookList />
+      <CalendarStrip />
+    </PageShell>
   );
 }

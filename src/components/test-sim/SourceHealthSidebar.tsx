@@ -78,10 +78,10 @@ export default function SourceHealthSidebar({ selectedTopics }: Props) {
   return (
     <div
       style={{
-        border: '1px solid var(--line)',
-        borderRadius: 11,
+        border: '1px solid var(--border-default)',
+        borderRadius: 'var(--r-card)',
         boxShadow: 'var(--shadow-1)',
-        background: 'var(--cream)',
+        background: 'var(--surface-page)',
         padding: '14px 16px',
         display: 'flex',
         flexDirection: 'column',

@@ -4,6 +4,9 @@
 // Reached from the Today view footer link. Not in main Nav (5 items frozen).
 
 import { useEffect, useState, useCallback } from 'react';
+import PageShell from '@/components/shared/primitives/PageShell';
+import Skeleton from '@/components/shared/primitives/Skeleton';
+import InlineMessage from '@/components/shared/primitives/InlineMessage';
 
 interface MemoryRow {
   scope: string;
@@ -154,23 +157,20 @@ export default function MemoryPage() {
   const main = memories.find((m) => m.scope === 'main');
 
   return (
-    <div style={{ maxWidth: 720, margin: '0 auto', padding: '20px 24px' }}>
-      <h1 style={{ fontSize: 20, fontWeight: 500, margin: '0 0 4px' }}>Memory</h1>
-      <p style={{ fontSize: 13, color: 'var(--ink3)', margin: '0 0 20px' }}>
+    <PageShell title="Memory" width="content" style={{ maxWidth: 720, margin: '0 auto' }}>
+      <p style={{ fontSize: 'var(--fs-body-s)', color: 'var(--text-secondary)', margin: '0 0 20px' }}>
         The permanent memory every AI feature reads first. Rewritten automatically
         after each session, test, chat, and capture — or edit it directly here.
         {main && (
-          <span style={{ color: 'var(--ink4)' }}>
+          <span style={{ color: 'var(--text-faint)' }}>
             {' '}v{main.version} · updated {new Date(main.updated_at).toLocaleString()}
           </span>
         )}
       </p>
 
-      {status === 'loading' && <p className="skeleton" style={{ width: '60%' }} />}
+      {status === 'loading' && <Skeleton width="60%" />}
       {status === 'error' && (
-        <p style={{ fontSize: 13, fontStyle: 'italic', color: 'var(--red)' }}>
-          Could not load memory.
-        </p>
+        <InlineMessage tone="error">Could not load memory.</InlineMessage>
       )}
 
       {status === 'loaded' && (
@@ -187,7 +187,7 @@ export default function MemoryPage() {
               color: 'var(--ink)',
               background: 'var(--cream2)',
               border: '1px solid var(--line)',
-              borderRadius: 11,
+              borderRadius: 'var(--r-card)',
               boxShadow: 'var(--shadow-1)',
               padding: '14px 16px',
               resize: 'vertical',
@@ -246,6 +246,6 @@ export default function MemoryPage() {
           )}
         </>
       )}
-    </div>
+    </PageShell>
   );
 }

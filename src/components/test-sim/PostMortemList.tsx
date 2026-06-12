@@ -35,8 +35,8 @@ export default function PostMortemList({ questions, wrongMap }: Props) {
 
   return (
     <div style={{
-      border: '1px solid var(--line)', borderRadius: 11, boxShadow: 'var(--shadow-1)',
-      background: 'var(--cream)', padding: '14px 16px',
+      border: '1px solid var(--border-default)', borderRadius: 'var(--r-card)', boxShadow: 'var(--shadow-1)',
+      background: 'var(--surface-page)', padding: '14px 16px',
       display: 'flex', flexDirection: 'column', gap: 14,
     }}>
       <p style={{

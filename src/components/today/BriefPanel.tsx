@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Skeleton from '@/components/shared/primitives/Skeleton';
+import InlineMessage from '@/components/shared/primitives/InlineMessage';
 
 const CACHE_KEY = 'sb_brief';
 
@@ -9,8 +11,13 @@ type State = 'loading' | 'loaded' | 'error';
 export default function BriefPanel() {
   const [state, setState] = useState<State>('loading');
   const [brief, setBrief] = useState('');
+  // React StrictMode re-runs effects in dev — without this guard the brief
+  // is fetched twice on first mount (both runs see an empty cache).
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
     const cached = typeof window !== 'undefined' ? sessionStorage.getItem(CACHE_KEY) : null;
     if (cached) {
       setBrief(cached);
@@ -49,35 +56,17 @@ export default function BriefPanel() {
 
   if (state === 'error') {
     return (
-      <p style={{
-        fontSize: 14,
-        fontStyle: 'italic',
-        color: 'var(--ink3)',
-        margin: 0,
-      }}>
+      <InlineMessage tone="muted" style={{ fontSize: 'var(--fs-body)' }}>
         Unable to load your brief.
-      </p>
+      </InlineMessage>
     );
   }
 
-  // loading — skeleton
+  // loading — skeleton (shared primitive; sweep keyframes live in globals.css)
   return (
     <div aria-label="Loading brief" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <style>{`
-        @keyframes skeleton-sweep {
-          0%   { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-        .brief-skeleton {
-          background: linear-gradient(90deg, var(--cream2) 25%, var(--cream3) 50%, var(--cream2) 75%);
-          background-size: 200% 100%;
-          animation: skeleton-sweep 1.5s ease-in-out infinite;
-          border-radius: 4px;
-          height: 14px;
-        }
-      `}</style>
-      <div className="brief-skeleton" style={{ width: '100%' }} />
-      <div className="brief-skeleton" style={{ width: '70%' }} />
+      <Skeleton width="100%" />
+      <Skeleton width="70%" />
     </div>
   );
 }

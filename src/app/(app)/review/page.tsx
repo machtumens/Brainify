@@ -6,6 +6,9 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { isPreSleepWindow } from '@/lib/sr/scheduler';
+import Card from '@/components/shared/primitives/Card';
+import Skeleton from '@/components/shared/primitives/Skeleton';
+import InlineMessage from '@/components/shared/primitives/InlineMessage';
 
 interface ReviewItem {
   id: string;
@@ -65,35 +68,32 @@ export default function ReviewPage() {
       </header>
 
       {status === 'loading' && (
-        <div className="skeleton" style={{ height: 180, borderRadius: 11 }} />
+        <Skeleton height={180} style={{ borderRadius: 'var(--r-card)' }} />
       )}
 
       {status === 'error' && (
-        <p style={{ fontSize: 13, fontStyle: 'italic', color: 'var(--red)' }}>
-          Could not load the review queue.
-        </p>
+        <InlineMessage tone="error">Could not load the review queue.</InlineMessage>
       )}
 
       {status === 'loaded' && !current && (
-        <div style={{
-          border: '1px solid var(--line)', borderRadius: 11, boxShadow: 'var(--shadow-1)',
-          background: 'var(--cream2)', padding: '40px 24px', textAlign: 'center',
-        }}>
-          <p style={{ margin: 0, fontSize: 15, fontStyle: 'italic', color: 'var(--ink2)' }}>
+        <Card
+          padding="none"
+          style={{ background: 'var(--surface-hover)', padding: '40px 24px', textAlign: 'center' }}
+        >
+          <p style={{ margin: 0, fontSize: 15, fontStyle: 'italic', color: 'var(--text-secondary)' }}>
             {done > 0 ? 'Queue clear. Nicely done.' : 'Nothing due right now.'}
           </p>
-          <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--ink4)' }}>
+          <p style={{ margin: '6px 0 0', fontSize: 'var(--fs-caption)', color: 'var(--text-faint)' }}>
             New mistakes appear here a day after they happen, then at 3, 7 and 21 days.
           </p>
-        </div>
+        </Card>
       )}
 
       {current && (
-        <div style={{
-          border: '1px solid var(--line)', borderRadius: 11, boxShadow: 'var(--shadow-1)',
-          background: 'var(--cream)', padding: '24px 20px',
-          display: 'flex', flexDirection: 'column', gap: 16, flex: 1,
-        }}>
+        <Card
+          padding="none"
+          style={{ padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 16, flex: 1 }}
+        >
           <p style={{ margin: 0, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--ink4)' }}>
             {current.topic}
           </p>
@@ -107,7 +107,7 @@ export default function ReviewPage() {
               style={{
                 fontFamily: 'inherit', fontSize: 14, fontStyle: 'italic',
                 color: 'var(--ink2)', background: 'var(--cream2)',
-                border: '1px solid var(--line2)', borderRadius: 11,
+                border: '1px solid var(--line2)', borderRadius: 'var(--r-card)',
                 padding: '16px', cursor: 'pointer', width: '100%',
                 minHeight: 52,
               }}
@@ -121,7 +121,7 @@ export default function ReviewPage() {
                 style={{
                   flex: 1, minHeight: 52, fontFamily: 'inherit', fontSize: 14,
                   color: 'var(--cream)', background: 'var(--ink)',
-                  border: 'none', borderRadius: 11, cursor: 'pointer',
+                  border: 'none', borderRadius: 'var(--r-card)', cursor: 'pointer',
                 }}
               >
                 Got it
@@ -131,14 +131,14 @@ export default function ReviewPage() {
                 style={{
                   flex: 1, minHeight: 52, fontFamily: 'inherit', fontSize: 14,
                   color: 'var(--red)', background: 'transparent',
-                  border: '1px solid var(--line2)', borderRadius: 11, cursor: 'pointer',
+                  border: '1px solid var(--line2)', borderRadius: 'var(--r-card)', cursor: 'pointer',
                 }}
               >
                 Still shaky
               </button>
             </div>
           )}
-        </div>
+        </Card>
       )}
     </div>
   );
