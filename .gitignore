@@ -48,3 +48,6 @@ playwright-report/
 inspect.log
 vercel-*.log
 
+# visual tour screenshots (regenerate: node scripts/visual-tour.mjs)
+visual-tour/
+
