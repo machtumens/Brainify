@@ -2,6 +2,16 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
+  // E2E-only auth bypass — double-gated: requires explicit env opt-in AND a
+  // non-production build. Production (next build / Vercel) always has
+  // NODE_ENV=production, so this branch is dead code there.
+  if (
+    process.env.E2E_AUTH_BYPASS === '1' &&
+    process.env.NODE_ENV !== 'production'
+  ) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(

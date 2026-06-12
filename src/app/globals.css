@@ -59,6 +59,70 @@
   /* Spring timing (CSS approximations; framer-motion uses lib/motion.ts) */
   --spring-gentle: 320ms cubic-bezier(0.32, 0.72, 0, 1);   /* Apple sheet curve */
   --spring-snappy: 200ms cubic-bezier(0.34, 1.3, 0.64, 1); /* slight overshoot */
+
+  /* ============================================================
+     v1.2 AMENDMENT — ADR-015 (user-approved 2026-06-11)
+     Token ARCHITECTURE growth. Palette values above stay frozen.
+     All additions below are additive — never edit lines above.
+     ============================================================ */
+
+  /* Spacing — 4pt scale. Card padding 14px 16px is the documented exception. */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+
+  /* Type scale — tokenizes the de-facto scale. --fs-display is new (view h1). */
+  --fs-micro: 10px;
+  --fs-caption: 12px;
+  --fs-body-s: 13px;
+  --fs-body: 14px;
+  --fs-title: 15px;
+  --fs-stat: 22px;
+  --fs-display: 28px;
+  --lh-tight: 1;
+  --lh-body: 1.5;
+  --ls-label: 0.07em;
+  --ls-stat: -0.5px;
+
+  /* Radius + layout widths */
+  --r-card: 11px;
+  --r-pill: 99px;
+  --r-input: 6px;
+  --r-sm: 4px;
+  --w-sidebar: 272px;
+  --w-content-max: 800px;
+  --w-chat-max: 720px;
+
+  /* Z-index scale — no arbitrary values */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-capture: 90;
+  --z-nav: 100;
+  --z-overlay: 200;
+
+  /* Semantic alias layer — dark-mode seam. Components consume these;
+     the raw palette above becomes internal. Dark mode later = one
+     [data-theme="dark"] block redefining only this layer. */
+  --surface-page: var(--cream);
+  --surface-hover: var(--cream2);
+  --surface-pressed: var(--cream3);
+  --text-primary: var(--ink);
+  --text-secondary: var(--ink2);
+  --text-tertiary: var(--ink3);
+  --text-faint: var(--ink4);
+  --text-inverse: var(--cream);   /* ink-filled CTAs — never pure white */
+  --border-default: var(--line);
+  --border-strong: var(--line2);
+  --state-danger: var(--red);
+  --state-warn: var(--amber);
+  --state-success: var(--green);
+  --state-warn-surface: var(--amber-pill);
+  --state-danger-surface: var(--red-pill);
 }
 
 /* ============================================================
@@ -154,3 +218,134 @@ body {
    All bars use --ink fill. No subject color-coding.
    transition: width var(--t-progress).
    ============================================================ */
+
+/* ============================================================
+   LAYOUT CLASSES — ADR-015 §5 (iPad Pro 13" adaptability)
+   Inline styles cannot express media queries; layout policy
+   lives here, in one auditable place (like .skeleton above).
+   ≤1024px (iPad portrait): sidebar pages collapse to a single
+   column; the aside reflows into a 2-up band below the main.
+   ============================================================ */
+
+.layout-sidebar {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) var(--w-sidebar);
+  gap: var(--sp-6);
+  padding: var(--sp-5) var(--sp-6);
+  align-items: start;
+  min-height: 100%;
+}
+
+.layout-sidebar__main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+
+.layout-sidebar__aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+
+@media (max-width: 1024px) {
+  .layout-sidebar {
+    grid-template-columns: 1fr;
+  }
+  .layout-sidebar__aside {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    align-items: start;
+  }
+}
+
+/* Single-column content pages (goals, textbooks) */
+.layout-content {
+  padding: var(--sp-5) var(--sp-6);
+  max-width: var(--w-content-max);
+}
+
+/* ============================================================
+   TASK CHECKLIST — migrated from TaskList's inline <style> block
+   (ADR-015 §6). Class names are part of the E2E selector contract:
+   .task-row / .task-checkbox / .task-label / .task-subject.
+   ============================================================ */
+
+.task-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  min-height: 44px;
+  cursor: pointer;
+  border-radius: var(--r-input);
+  transition: background var(--t-fast);
+}
+.task-row:hover { background: var(--surface-hover); }
+
+.task-checkbox {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--t-task);
+  outline: none;
+}
+.task-checkbox:focus-visible {
+  outline: 2px solid var(--text-secondary);
+  outline-offset: 2px;
+}
+.task-checkbox.done {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+.task-label {
+  flex: 1;
+  font-size: var(--fs-body);
+  font-weight: 300;
+  color: var(--text-primary);
+  transition: color var(--t-task), text-decoration var(--t-task);
+}
+.task-label.done {
+  color: var(--text-faint);
+  text-decoration: line-through;
+  text-decoration-color: var(--border-strong);
+}
+
+.task-subject {
+  font-size: var(--fs-micro);
+  font-style: italic;
+  color: var(--text-faint);
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* ============================================================
+   THINKING DOTS — Ask AI streaming indicator (loading-indicator
+   exemption to the no-decorative-loop rule, like .skeleton).
+   ============================================================ */
+
+@keyframes thinking-pulse {
+  0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+  40%           { opacity: 1;    transform: translateY(-2px); }
+}
+
+.thinking-dots span {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+  margin-right: 3px;
+  animation: thinking-pulse 1.2s ease-in-out infinite;
+}
+
+.thinking-dots span:nth-child(2) { animation-delay: 0.15s; }
+.thinking-dots span:nth-child(3) { animation-delay: 0.3s; }
